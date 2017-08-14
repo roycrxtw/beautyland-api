@@ -11,6 +11,14 @@ var debug = require('debug')('list-handler');
 var request = require('request');
 var cheerio = require('cheerio');
 
+var log = require('bunyan').createLogger({
+	name: 'list-handler',
+	streams: [{
+		level: config.LOG_LEVEL,
+		path: 'log/list-handler.log'
+	}]
+});
+
 var util = require('./util');
 
 const BASE_URL = 'https://www.ptt.cc';

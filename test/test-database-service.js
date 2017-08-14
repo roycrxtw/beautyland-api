@@ -60,12 +60,7 @@ describe('Testing for database-service', function(){
 	beforeEach(function(done){
 		// Insert test documents into database
 		testCollection.insertMany(preparedPosts, function(err, result){
-			//console.log('beforeEach: err=', err);
-			if(err){
-				console.log(err);
-			}
 			expect(err).to.be.null;
-			//console.log('beforeEach: result=', result);
 			expect(result.result.n).to.equal(3);
 			done();
 		});
