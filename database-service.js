@@ -150,9 +150,16 @@ class DatabaseService{
 var instance = null;
 
 module.exports = async function(){
-	instance = new DatabaseService()
-	await instance.connect();
-	return instance;
+	try{
+		if(!instance || !instance.isConnected){
+			instance = new DatabaseService()
+			await instance.connect();
+		}
+		return instance;
+	}catch(ex){
+		log.error({ex: ex.stack}, 'Error in module.exports');
+		return null;
+	}
 };
 
 module.exports.getInstance = function(){
