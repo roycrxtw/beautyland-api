@@ -11,6 +11,9 @@ var debug = require('debug')('list-handler');
 var request = require('request');
 var cheerio = require('cheerio');
 
+var config = require('./config/main.config');
+var util = require('./util');
+
 var log = require('bunyan').createLogger({
 	name: 'list-handler',
 	streams: [{
@@ -18,8 +21,6 @@ var log = require('bunyan').createLogger({
 		path: 'log/list-handler.log'
 	}]
 });
-
-var util = require('./util');
 
 const BASE_URL = 'https://www.ptt.cc';
 const patternImgurId = /(?:http|https):\/\/.*?imgur\.com\/([^ \n]+)/;

@@ -14,6 +14,14 @@ var config = require('./config/main.config');
 var pageSize = config.defaultPageSize;
 var dbService = require('./database-service').getInstance('preload-list');
 
+var log = require('bunyan').createLogger({
+	name: 'preload-list',
+	streams: [{
+		level: config.LOG_LEVEL,
+		path: 'log/main.log'
+	}]
+});
+
 class PreloadList{
     constructor(){
         this.posts = [];
@@ -22,11 +30,13 @@ class PreloadList{
     }
 
     async update(){
+        console.log('list: update')
         try{
             debug('PreloadList.update() started.');
             this.posts = await dbService.readPosts({size: this.max, skip: 0});
             this.updatedAt = new Date();
         }catch(ex){
+            console.log(ex);
             log.error({ex: ex.stack}, 'Error in preload-list.update()');
         }
     }

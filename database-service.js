@@ -20,7 +20,7 @@ const connectionOptions = {
 }; 
 
 var log = require('bunyan').createLogger({
-	name: 'accesslog',
+	name: 'db',
 	streams: [{
 		level: config.LOG_LEVEL,
 		path: 'log/db.log'
@@ -162,6 +162,12 @@ module.exports = async function(){
 	}
 };
 
-module.exports.getInstance = function(){
-	return instance;
+module.exports.getInstance = function(source){
+	if(instance){
+		console.log('%s want to get instance, we will give them.', source);
+		return instance;
+	}else{
+		console.log('%s want to get instance, but there is no instance.', source);
+		throw new Error('Database service instance doesn\'t exist.');
+	}
 }

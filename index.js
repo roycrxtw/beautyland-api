@@ -24,9 +24,11 @@ var log = require('bunyan').createLogger({
 
 
 (async function init(){
+	console.log('index.js init()');
 	try{
+		console.log('trying to set up database service.');
 		let dbService = await DatabaseService();	// init for DatabaseService
-
+		console.log('index: trying to set up preload-list.');
 		let preloadList = require('./preload-list');
 		await preloadList.update();
 
