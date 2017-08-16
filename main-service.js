@@ -29,6 +29,11 @@ const BORDER_URL = 'https://www.ptt.cc/bbs/Beauty/';
 
 var daemon = null;
 
+(async function init(){
+	debug('main-service.init() started');
+	await updatePreloadList();
+	debug('main-service.init() end');
+})();
 
 (async function callDaemon(){
 	try{
@@ -37,7 +42,7 @@ var daemon = null;
 			daemon = require('child_process').fork(__dirname + '/daemon.js');
 			daemon.on('message', async function(m){
 				if(m.cmd === 'update-preloadList'){
-					await preloadList.update();
+					updatePreloadList();
 				}
 			});
 		}
@@ -72,9 +77,8 @@ async function getIndexPage(page = 1){
 
 
 /**
- * #todo
- * Serve trends page for routers.
- * @param {number} period Preiod of trends. It only accepts 3 values: 1, 3 and 7
+ * Serve trends page.
+ * @param {number} period Preiod of click trends. It only accepts values from 1 to 7.
  */
 async function getTrendsPage({period = 1, page = 1} = {}){
 	period = parseInt(period);
@@ -93,6 +97,21 @@ async function getTrendsPage({period = 1, page = 1} = {}){
 		}
 	}else{
 		throw new Error('Invalid period value.');
+	}
+}
+
+/**
+ * Update the preload list.
+ * This function will get posts from database and save to the preload list 
+ * in order to accelerate page loading speed.
+ */
+async function updatePreloadList(){
+	try{
+		let preloadListSize = parseInt(config.preloadSize);
+		let posts = await dbService.readPosts({size: preloadListSize, skip: 0});
+		preloadList.update(posts);
+	}catch(ex){
+		log.error({ex: ex.stack}, 'Error in main-service.updatePreloadList()');
 	}
 }
 

@@ -28,9 +28,6 @@ var log = require('bunyan').createLogger({
 	try{
 		console.log('trying to set up database service.');
 		let dbService = await DatabaseService();	// init for DatabaseService
-		console.log('index: trying to set up preload-list.');
-		let preloadList = require('./preload-list');
-		await preloadList.update();
 
 		app.use(require('./routers'));
 		app.use(express.static(__dirname + '/public'));

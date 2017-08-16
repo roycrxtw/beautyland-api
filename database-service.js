@@ -126,7 +126,7 @@ class DatabaseService{
 			if(!this.conn){
 				return reject('Db does not exist.');
 			}
-			debug('readPost, query=, order=', query, order);
+			debug('readPosts, arguments=', arguments);
 			this.conn.collection(collectionName).find(query).sort(order)
 					.skip(skip).limit(size).toArray(function(err, docs){
 				if(err){

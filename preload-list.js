@@ -1,9 +1,7 @@
 
-
-
 /**
- * A default list which save the latest cached posts.
- * This list will be returned when client visits index page.
+ * A preload post list which save the latest cached posts.
+ * This design is trying to accelerate 
  */
 
 'use strict';
@@ -12,15 +10,6 @@ var debug = require('debug')('preloadList');
 
 var config = require('./config/main.config');
 var pageSize = config.defaultPageSize;
-var dbService = require('./database-service').getInstance('preload-list');
-
-var log = require('bunyan').createLogger({
-	name: 'preload-list',
-	streams: [{
-		level: config.LOG_LEVEL,
-		path: 'log/main.log'
-	}]
-});
 
 class PreloadList{
     constructor(){
@@ -29,16 +18,12 @@ class PreloadList{
         this.updatedAt = undefined;
     }
 
-    async update(){
-        console.log('list: update')
-        try{
-            debug('PreloadList.update() started.');
-            this.posts = await dbService.readPosts({size: this.max, skip: 0});
-            this.updatedAt = new Date();
-        }catch(ex){
-            console.log(ex);
-            log.error({ex: ex.stack}, 'Error in preload-list.update()');
-        }
+    update(list){
+        debug('update() started. list.length=', list.length)
+        debug('update(): list[1]=', list[1]);
+        this.posts = list;
+        this.updatedAt = new Date();
+        debug('Current preload-list size is %s', this.posts.length);
     }
 
     getList(page){
