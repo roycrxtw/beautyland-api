@@ -156,6 +156,35 @@ describe('Testing for database-service', function(){
 			expect(result1.n).to.equal(0);
 		});
 	});
+
+	describe('database-service.updatePostClickCount(postId): Update post click count by 1', function(){
+		it('should return true if postId exists', async function(){
+			let result = await dbService.updatePostClickCount({
+				postId: 'test.id.teemo', 
+				collectionName: 'test'
+			});
+			expect(result).to.be.true;
+		});
+
+		it('should return false if postId does not exist', async function(){
+			// to test if postId doesn't exist
+			let result1 = await dbService.updatePostClickCount({
+				postId: 'test.id.ghost', 
+				collectionName: 'test'
+			});
+			expect(result1).to.be.false;
+		});
+
+		it('should have expected click count if process finished', async function(){
+			await dbService.updatePostClickCount({
+				postId: 'test.id.teemo', 
+				collectionName: 'test'
+			});
+
+			let result = await testCollection.findOne({postId: 'test.id.teemo'});
+			expect(result.clickCount).to.equal(57);
+		});
+	});
 });
 
 

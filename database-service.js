@@ -145,6 +145,27 @@ class DatabaseService{
 	isConnected(){
 		return (this.conn)? true: false;
 	}
+
+	async updatePostClickCount({postId, collectionName = 'posts'} = {}){
+		try{
+			debug('updatePostClickCount, args=', arguments);
+			let r = await this.conn.collection(collectionName).findOneAndUpdate(
+				{postId: postId},  {$inc: {clickCount: 1}}, {returnOriginal: false}
+			);
+
+			if(r.ok && r.value){
+				return true;
+			}else{
+				return false;
+			}
+		}catch(ex){
+			log.error(
+				{args: arguments, ex: ex.stack}, 
+				'Error in database-service.updatePostClickCount()'
+			);
+			return false;
+		}
+	}
 }
 
 var instance = null;

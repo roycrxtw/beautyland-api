@@ -12,7 +12,6 @@ var debug = require('debug')('routers');
 
 var config = require('./config/main.config');
 var service = require('./main-service');
-var dbService = require('./database-service').getInstance('routers');
 
 var log = require('bunyan').createLogger({
 	name: 'accesslog',
@@ -67,6 +66,28 @@ router.get('/trends/:period', async function(req, res, next){
 		return res.json(posts);
 	}catch(ex){
 		log.error({args: req.params.arg, ex: ex.stack}, 'Error in routers.get>list');
+		return res.sendStatus(500);
+	}
+});
+
+
+/**
+ * Client will send request for this route. It works like a signal receiver.
+ * The click count will be increased for that specific post.
+ */
+router.get('/post/:postId', async function(req, res, next){
+	try{
+		let postId = req.params.postId;
+		debug('get>post/postId. postId=', postId);
+		let flag = await service.setPostClickCount(postId);
+		if(flag){
+			return res.sendStatus(200);
+		}else{
+			return res.sendStatus(400);
+		}
+		
+	}catch(ex){
+		log.error({postId: postId, ex: ex.stack}, 'Error in routers.get>post');
 		return res.sendStatus(500);
 	}
 });

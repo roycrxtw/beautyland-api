@@ -115,5 +115,24 @@ async function updatePreloadList(){
 	}
 }
 
+
+/**
+ * 
+ * @param {string} postId 
+ * @return {boolean} true if process finished successfully. 
+ */
+async function setPostClickCount(postId){
+	try{
+		debug('setPostClickCount(): started. postId=', postId);
+		let flag = await dbService.updatePostClickCount({postId: postId});
+		debug('setPostClickCount(): flag.=', flag);
+		return flag;
+	}catch(ex){
+		log.error({postId: postId, ex: ex.stack}, 'Error in main-service.setPostClickCount()');
+	}
+}
+
+
 module.exports.getIndexPage = getIndexPage;
 module.exports.getTrendsPage = getTrendsPage;
+module.exports.setPostClickCount = setPostClickCount;
