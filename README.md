@@ -14,11 +14,5 @@ or
 /trends/7
 ```
 
-## Test
-To run the test
-```
-npm test
-``
-
 ## License
 Beautyland API is licensed under the MIT license.

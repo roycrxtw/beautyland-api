@@ -10,7 +10,9 @@ var connectionOptions = {
 	connectTimeoutMS: 50000
 }; 
 
-const DB_URL = 'mongodb://root:dbbl5566@ds031822.mlab.com:31822/beauty-land';
+var config = require('../config/main.config');
+
+const DB_URL = config.dburl;
 var db = null;
 var testCollection = null;
 let dbService = null;

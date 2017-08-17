@@ -13,7 +13,7 @@ var debug = require('debug')('db');
 var MongoClient = require('mongodb').MongoClient;
 
 var config = require('./config/main.config');
-const DB_URL = 'mongodb://root:dbbl5566@ds031822.mlab.com:31822/beauty-land';
+const DB_URL = config.dburl;
 const connectionOptions = {
 	keepAlive: 300000,
 	connectTimeoutMS: 50000
