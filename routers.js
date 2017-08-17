@@ -43,7 +43,7 @@ router.get(['/readme'], function(req, res, next){
 });
 
 router.get('/info', function(req, res, next){
-	res.json({message: 'This is Beautyland api, author: Roy Lu. Aug 2017'});
+	res.json({message: 'This is Beautyland api, author: Roy Lu. Aug 2017. #0429'});
 });
 
 router.get(['/', '/list/page/:page'], async function(req, res, next){
