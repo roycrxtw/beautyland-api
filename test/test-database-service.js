@@ -10,9 +10,8 @@ var connectionOptions = {
 	connectTimeoutMS: 50000
 }; 
 
-var config = require('../config/main.config');
-
-const DB_URL = config.dburl;
+// Use a local mongodb to test the database-service.js
+const TEST_DB_URL = require('../config/db.config').testUrl;
 var db = null;
 var testCollection = null;
 let dbService = null;
@@ -51,10 +50,10 @@ describe('Testing for database-service', function(){
 	this.timeout(15000);
 
 	before(async function(){
-		dbService = await DatabaseService();	// init for DatabaseService
+		dbService = await DatabaseService(TEST_DB_URL);	// init for DatabaseService
 		
-		// Setup database test collection
-		db = await MongoClient.connect(DB_URL, connectionOptions);
+		// Set up a connection directly to testing database
+		db = await MongoClient.connect(TEST_DB_URL, connectionOptions);
 		testCollection = db.collection('test');
 		testCollection.remove({});
 	});

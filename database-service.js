@@ -13,7 +13,6 @@ var debug = require('debug')('db');
 var MongoClient = require('mongodb').MongoClient;
 
 var config = require('./config/main.config');
-const DB_URL = config.dburl;
 const connectionOptions = {
 	keepAlive: 300000,
 	connectTimeoutMS: 50000
@@ -28,7 +27,8 @@ var log = require('bunyan').createLogger({
 });
 
 class DatabaseService{
-	constructor(){
+	constructor(url){
+		this.dburl = url || config.dburl;
 		this.conn = null;
 	}
 	
@@ -36,7 +36,7 @@ class DatabaseService{
 		if(!this.conn){
 			try{
 				log.info('DatabaseService.connect(): Now trying to connect to database.');
-				let db = await MongoClient.connect(DB_URL, connectionOptions);
+				let db = await MongoClient.connect(this.dburl, connectionOptions);
 				this.conn = db;
 				log.info('DatabaseService.connect() finished.');
 			}catch(ex){
@@ -170,10 +170,10 @@ class DatabaseService{
 
 var instance = null;
 
-module.exports = async function(){
+module.exports = async function(url){
 	try{
 		if(!instance || !instance.isConnected){
-			instance = new DatabaseService()
+			instance = new DatabaseService(url);
 			await instance.connect();
 		}
 		return instance;
