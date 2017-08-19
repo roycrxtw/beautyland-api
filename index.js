@@ -22,6 +22,11 @@ var log = require('bunyan').createLogger({
 	}]
 });
 
+app.use(express.static(__dirname + '/public'));
+
+// set up CORS
+var cors = require('cors');
+app.use(cors());
 
 (async function init(){
 	console.log('index.js init()');
@@ -30,7 +35,7 @@ var log = require('bunyan').createLogger({
 		let dbService = await DatabaseService();	// init for DatabaseService
 
 		app.use(require('./routers'));
-		app.use(express.static(__dirname + '/public'));
+		
 
 		app.listen(PORT, function(){
 			console.log('Beautyland is listening on %s', PORT);

@@ -31,7 +31,7 @@ var log = require('bunyan').createLogger({
     log.info('daemon.run() started.');
     try{
         // Set up its own database service. It doesn't share db connection with main-process.
-        let dbService = await DatabaseService('daemon');
+        let dbService = await DatabaseService();
         while(true){    // run forever
             let pttContent = await util.loadHtml(BORDER_URL);
 

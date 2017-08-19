@@ -89,7 +89,8 @@ class DatabaseService{
 			if(!this.conn){
 				return reject('Database connection does not exist.');
 			}
-			this.conn.collection(collectionName).findOne({postId: postId}, function(err, doc){
+			this.conn.collection(collectionName).findOne({postId: postId}, {fields: {_id: 0}}, 
+					function(err, doc){
 				if(err){
 					return reject(err);
 				}
@@ -128,7 +129,7 @@ class DatabaseService{
 			}
 			debug('readPosts, arguments=', arguments);
 			this.conn.collection(collectionName).find(query).sort(order)
-					.skip(skip).limit(size).toArray(function(err, docs){
+					.skip(skip).limit(size).project({_id: 0}).toArray(function(err, docs){
 				if(err){
 					return reject(err);
 				}
