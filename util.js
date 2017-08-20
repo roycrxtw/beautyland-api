@@ -10,9 +10,11 @@
 var request = require('request');
 var debug = require('debug')('util');
 var cheerio = require('cheerio');
+var requestImageSize = require('request-image-size');
 
 module.exports.loadHtml = loadHtml;
 module.exports.htmlToText = htmlToText;
+module.exports.getImageSize = getImageSize;
 
 
 /**
@@ -56,4 +58,14 @@ function htmlToText(html){
 	}
 	let $ = cheerio.load(html);
 	return $('body').text();
+}
+
+
+async function getImageSize(url){
+	try{
+		let r = await requestImageSize(url);
+		return r;
+	}catch(ex){
+		console.log(ex);	//#todo
+	}
 }

@@ -20,29 +20,35 @@ let preparedPosts = [{
 	author: 'Karl',
 	postId: 'test.id.karl',
 	title: '[dis] 2 types of question mark',
-	postDate: '8/06',
 	link: 'https://www.ptt.cc/bbs/Beauty/test.id.karl.html',
 	clickCount: 123,
 	createdAt: new Date('2017-08-06T13:24:26.000Z'),
-	imgUrls: ['http://i.imgur.com/G8mgxvB.jpg', 'http://i.imgur.com/aQOUYt3.jpg']
+	images: [
+		{url: 'http://i.imgur.com/G8mgxvB.jpg', width: 521, height: 534},
+		{url: 'http://i.imgur.com/aQOUYt3.jpg', width: 250, height: 250}
+	]
 }, {
 	author: 'Teemo',
 	postId: 'test.id.teemo',
 	title: 'Teemo can speak!',
-	postDate: '8/06',
 	link: 'https://www.ptt.cc/bbs/Beauty/test.id.teemo.html',
 	clickCount: 56,
 	createdAt: new Date('2017-08-06T09:24:26.000Z'),
-	imgUrls: ['http://i.imgur.com/lYPV8uO.jpg', 'http://i.imgur.com/Wr9hEQe.jpg']
+	images: [
+		{url: 'http://i.imgur.com/lYPV8uO.jpg', width: 433, height: 234}, 
+		{url: 'http://i.imgur.com/Wr9hEQe.jpg', width: 720, height: 960}
+	]
 }, {
 	author: 'Thrall',
 	postId: 'test.id.thrall',
 	title: 'For the horde',
-	postDate: '8/02',
 	link: 'https://www.ptt.cc/bbs/Beauty/test.id.thrall.html',
 	clickCount: 22,
 	createdAt: new Date('Mon Aug 02 2017 18:24:26 GMT+0800 (台北標準時間)'),
-	imgUrls: ['http://i.imgur.com/uJyaBIK.jpg', 'http://i.imgur.com/Pt0nQMQ.jpg']
+	images: [
+		{url: 'http://i.imgur.com/uJyaBIK.jpg', width: 858, height: 854}, 
+		{url: 'http://i.imgur.com/Pt0nQMQ.jpg', width: 601, height: 851}
+	]
 }];
 
 
@@ -128,7 +134,11 @@ describe('Testing for database-service', function(){
 	describe('database-service.readPost(postId): Read post from database', function(){
 		it('should return expected post document.', async () => {
 			let post = await dbService.readPost('test.id.teemo', 'test');
-			expect(post).to.deep.equal(preparedPosts[1]);
+			expect(post.author).to.equal(preparedPosts[1].author);
+			expect(post.postId).to.equal(preparedPosts[1].postId);
+			expect(post.title).to.equal(preparedPosts[1].title);
+			expect(post.link).to.equal(preparedPosts[1].link);
+			expect(post.images).to.deep.equal(preparedPosts[1].images);
 		});
 	});
 

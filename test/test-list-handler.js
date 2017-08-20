@@ -59,7 +59,6 @@ describe('Test for list-handler', function(){
 			let results = handler.getList(file);
 			expect(results[3].author).to.equal('bbac99119');
 			expect(results[3].title).to.equal('[神人] 光陽showgirl');
-			expect(results[3].postDate).to.equal('8/06');
 			expect(results[3].postId).to.equal('M.1502034628.A.9D5');
 			expect(results[3].link).to.equal('https://www.ptt.cc/bbs/Beauty/M.1502034628.A.9D5.html');
 		});

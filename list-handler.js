@@ -86,13 +86,19 @@ async function generatePost(postSummary){
 			return false;	// No any image exists. Return false.
 		}
 		
-		let formattedImgUrls = [];
+		let imageList = [];
 		for(let i = 0; i < imgurUrls.length; i++){
-			formattedImgUrls.push( formatImgurUrl(imgurUrls[i]) );
+			let image = {};
+			image.url = formatImgurUrl(imgurUrls[i]);
+			let imageInfo = await util.getImageSize(image.url);
+			console.log('imageInfo: ', imageInfo);
+			image.width = imageInfo.width;
+			image.height = imageInfo.height;
+			imageList.push( image );
 		}
 
 		let preparedPost = postSummary;
-		preparedPost.imgUrls = formattedImgUrls;
+		preparedPost.images = imageList;
 		preparedPost.clickCount = 0;
 		preparedPost.createdAt = new Date();
 		return preparedPost;
@@ -133,7 +139,6 @@ function getList(htmlContent){
 		}
 
 		postSummary.author = $(this).find('.author').text();
-		postSummary.postDate = $(this).find('.date').text().replace(' ', '');
 		let temp = $(this).find('.title').text();
 		postSummary.title = temp.replace(/[\t\n\r]/g, '');
 		postSummary.postId = getPostId(path);

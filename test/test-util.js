@@ -29,5 +29,16 @@ describe('Testing for util.js', function(){
 			expect(text.length).to.equal(726);
 		});
 	});
+
+
+	describe('util.getImageSize(url): Get image size for a given url', function(){
+		it('should return expected width and height', async function(){
+			let imageUrl = 'http://i.imgur.com/78f9eAs.jpg';
+			let expectedWidth = 1280, expectedHeight = 720;
+			let result = await util.getImageSize(imageUrl);
+			expect(result.width).to.equal(expectedWidth);
+			expect(result.height).to.equal(expectedHeight);
+		});
+	});
 });
 
