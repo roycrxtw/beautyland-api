@@ -12,6 +12,7 @@
   "dependencies": {
     "bunyan": "^1.8.12",
     "cheerio": "^1.0.0-rc.2",
+    "cors": "^2.8.4",
     "express": "^4.15.3",
     "mongodb": "^2.2.30",
     "mongoose": "^4.11.5",
