@@ -43,29 +43,27 @@ router.get(['/readme'], function(req, res, next){
 });
 
 router.get('/info', function(req, res, next){
-	res.json({message: 'This is Beautyland api, author: Roy Lu. Aug 2017. #0440'});
+	res.json({message: 'This is Beautyland api, author: Roy Lu. Aug 2017. #0717'});
 });
 
-router.get(['/', '/list/page/:page'], async function(req, res, next){
+router.get(['/', '/latest/:page?'], async function(req, res, next){
 	try{
-		let page = parseInt(req.params.page);
-		debug('get>index started. page=', page);
-		let list = await service.getIndexPage(page);
-		debug('get>index end.');
-		return res.json(list);
+		let page = (req.params.page)? parseInt(req.params.page): 1;
+		let posts = await service.getIndexPage(page);
+		return res.json(posts);
 	}catch(ex){
-		log.error({args: req.params.page, ex: ex.stack}, 'Error in routers.get>list');
+		log.error({page: req.params.page, ex: ex.stack}, 'Error in routers.get>latest');
 		return res.sendStatus(500);
 	}
 });
 
-router.get('/trends/:period', async function(req, res, next){
+router.get('/trends/:page?', async function(req, res, next){
 	try{
-		debug('get>trends page. arg=', req.params.period);
-		let posts = await service.getTrendsPage({period: req.params.period});
+		let page = (req.params.page)? parseInt(req.params.page): 1;
+		let posts = await service.getTrendsPage({range: 7, page: page});
 		return res.json(posts);
 	}catch(ex){
-		log.error({args: req.params.arg, ex: ex.stack}, 'Error in routers.get>list');
+		log.error({page: req.params.arg, ex: ex.stack}, 'Error in routers.get>trends');
 		return res.sendStatus(500);
 	}
 });

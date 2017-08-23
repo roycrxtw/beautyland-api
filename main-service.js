@@ -80,23 +80,25 @@ async function getIndexPage(page = 1){
  * Serve trends page.
  * @param {number} period Preiod of click trends. It only accepts values from 1 to 7.
  */
-async function getTrendsPage({period = 1, page = 1} = {}){
-	period = parseInt(period);
+async function getTrendsPage({range = 1, page = 1} = {}){
+	debug('getTrendsPage, page=', page);
+	range = parseInt(range);
 	page = parseInt(page);
-	if( period >=1 && period <= 7 ){
+	if( range >=1 && range <= 30 && page >= 1){
 		try{
-			var offset = new Date().setDate(new Date().getDate() - period);
+			var offset = new Date().setDate(new Date().getDate() - range);
 			let posts = await dbService.readPosts({
 				query: {createdAt: {$gte: new Date(offset)}},
 				order: {clickCount: -1},
-				size: 10
+				size: defaultPageSize,
+				skip: defaultPageSize * (page - 1)
 			});
 			return posts;
 		}catch(ex){
 			log.error({args: arguments, ex: ex.stack}, 'Error in main-service.getTrendsPage()');
 		}
 	}else{
-		throw new Error('Invalid period value.');
+		throw new Error('Invalid page/range value.');
 	}
 }
 
