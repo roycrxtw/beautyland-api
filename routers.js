@@ -78,7 +78,7 @@ router.put('/post/:postId', async function(req, res, next){
 		let postId = req.params.postId;
 		let flag = await service.updatePostViewCount(postId);
 		if(flag){
-			return res.sendStatus(200);
+			return res.status(200).send('Update ok.');
 		}else{
 			return res.sendStatus(400);
 		}
