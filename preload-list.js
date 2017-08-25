@@ -30,9 +30,9 @@ class PreloadList{
         debug('getList() started. page=%s, preloadList.size=%s', page, this.posts.length);
         let slicedPosts = [];
         if(page === 1){
-            slicedPosts = this.posts.slice(0, 10);
+            slicedPosts = this.posts.slice(0, config.defaultPageSize);
         }else{
-            slicedPosts = this.posts.slice(10, 20);
+            slicedPosts = this.posts.slice(config.defaultPageSize, this.max);
         }
         return {posts: slicedPosts, updatedAt: this.updatedAt};
     }
