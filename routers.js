@@ -73,19 +73,17 @@ router.get('/trends/:page?', async function(req, res, next){
  * Client will send request for this route. It works like a signal receiver.
  * The click count will be increased for that specific post.
  */
-router.get('/post/:postId', async function(req, res, next){
+router.put('/post/:postId', async function(req, res, next){
 	try{
 		let postId = req.params.postId;
-		debug('get>post/postId. postId=', postId);
-		let flag = await service.setPostClickCount(postId);
+		let flag = await service.updatePostViewCount(postId);
 		if(flag){
 			return res.sendStatus(200);
 		}else{
 			return res.sendStatus(400);
 		}
-		
 	}catch(ex){
-		log.error({postId: postId, ex: ex.stack}, 'Error in routers.get>post');
+		log.error({postId: postId, ex: ex.stack}, 'Error in routers.put>post/:postId');
 		return res.sendStatus(500);
 	}
 });
