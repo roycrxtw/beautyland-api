@@ -120,6 +120,9 @@ async function generatePost(postSummary){
 			image.height = imageInfo.height;
 			imageList.push( image );
 		}
+		if(imageList.length === 0){
+			return false;
+		}
 
 		let preparedPost = postSummary;
 		preparedPost.images = imageList;
