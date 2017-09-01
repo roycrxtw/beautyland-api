@@ -1,6 +1,6 @@
 
 /**
- * Project Beautyland
+ * Project Beautyland API
  * This handler parse ptt contents to formatted data
  * @author Roy Lu
  */
@@ -23,9 +23,8 @@ var log = require('bunyan').createLogger({
 });
 
 const BASE_URL = 'https://www.ptt.cc';
-const patternImgurId = /(?:http|https):\/\/.*?imgur\.com\/([^ \n]+)/;
-const patternImgurUrl = /(?:http|https):\/\/.*?imgur\.com\/([^ \n?/]+)/g;
-
+const patternImgurId = /(?:http|https):\/\/.*?imgur\.com\/([^ .\n/]+)/;
+const imgurUrlPattern = /(?:http|https):\/\/.*?imgur\.com\/([^ \n?/]+)/g;
 
 module.exports.generatePost = generatePost;
 module.exports.getImgurId = getImgurId;
@@ -34,15 +33,37 @@ module.exports.getList = getList;
 module.exports.getPostId = getPostId;
 
 
+/**
+ * Format imgur url to a https direct link.
+ * @param {string} url Target imgur url
+ * @return {string} Formatted imgur URL, or null if it is invalid imgur url.
+ */
 function formatImgurUrl(url){
-	let imgurId = getImgurId(url);
-	let formattedImgurUrl = 'http://i.imgur.com/' + imgurId;
-	return formattedImgurUrl;
+	const imgurId = getImgurId(url);
+	if(imgurId === 'nomatch'){
+		return null;
+	}else{
+		const formattedImgurUrl = 'https://i.imgur.com/' + imgurId + '.jpg';
+		return formattedImgurUrl;
+	}
 }
 
 
+/**
+ * Get imgur image ID
+ * @param {string} url imgur url
+ * @return {string} The matched imgur id, or **nomatch** if the url is imgur 
+ * album, imgur gallery or any other invalid url.
+ */
 function getImgurId(url){
-	return url.match(patternImgurId)[1];
+	const match = url.match(patternImgurId);
+	if(!match){
+		return 'nomatch';
+	}else if(match[1] === 'a' || match[1] === 'gallery'){
+		return 'nomatch';
+	}else{
+		return match[1];
+	}
 }
 
 
@@ -52,7 +73,7 @@ function getImgurId(url){
  * @return {string[]} urls A url array parsed from plain text
  */
 function getImgurUrlsFromText(text){
-	let urls = text.match(patternImgurUrl);
+	let urls = text.match(imgurUrlPattern);
 	if(!urls){
 		urls = [];
 	}
@@ -89,9 +110,12 @@ async function generatePost(postSummary){
 		let imageList = [];
 		for(let i = 0; i < imgurUrls.length; i++){
 			let image = {};
-			image.url = formatImgurUrl(imgurUrls[i]);
-			let imageInfo = await util.getImageSize(image.url);
-			console.log('imageInfo: ', imageInfo);
+			const formattedUrl = formatImgurUrl(imgurUrls[i]);
+			if(!formattedUrl){
+				continue;
+			}
+			image.url = formattedUrl;
+			const imageInfo = await util.getImageSize(image.url);
 			image.width = imageInfo.width;
 			image.height = imageInfo.height;
 			imageList.push( image );
@@ -113,8 +137,8 @@ async function generatePost(postSummary){
  * @param {string} url PTT url
  */
 function getPostId(url){
-	let pattern = /^.*\/(.*)\.html$/;
-	let postId = url.match(pattern)[1];
+	const pattern = /^.*\/(.*)\.html$/;
+	const postId = url.match(pattern)[1];
 	return postId;
 }
 

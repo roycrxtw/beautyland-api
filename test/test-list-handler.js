@@ -1,4 +1,10 @@
 
+/**
+ * Project Beautyland API
+ * Test for list-handler.js
+ * @author Roy Lu(royvbtw) Sep 2017
+ */
+
 'use strict';
 
 var expect = require('chai').expect;	
@@ -6,16 +12,23 @@ var expect = require('chai').expect;
 var handler = require('../list-handler.js');
 var fs = require('fs');
 
+const testUrls = [
+	{url: 'http://imgur.com/70KeHU5', id: '70KeHU5'},
+	{url: 'http://m.imgur.com/70KeHU5', id: '70KeHU5'},
+	{url: 'http://i.imgur.com/70KeHU5', id: '70KeHU5'},
+	{url: 'http://i.imgur.com/13wpSFj.jpg', id: '13wpSFj'},
+	{url: 'http://imgur.com/a/Qai8x', id: 'nomatch'},
+	{url: 'http://imgur.com/gallery/VCDXO', id: 'nomatch'},
+	{url: 'https://royvbtw.uk/cats.jpg', id: 'nomatch'}
+];
+
 describe('Test for list-handler', function(){	
 	describe('list-handler.getImgurId()', function(){
 		it('should return expected imgur id', function(){
-			let urls = ['http://imgur.com/70KeHU5', 
-				'http://m.imgur.com/70KeHU5', 
-				'http://i.imgur.com/70KeHU5'];
 			let imgurId = '';
-			urls.forEach(function(element) {
-				imgurId = handler.getImgurId(element);
-				expect(imgurId).to.equal('70KeHU5');
+			testUrls.forEach( elem => {
+				imgurId = handler.getImgurId(elem.url);
+				expect(imgurId).to.equal(elem.id);
 			}, this);
 		});
 	});
