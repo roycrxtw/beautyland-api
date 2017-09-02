@@ -41,7 +41,7 @@ router.use(function(req, res, next){
 });
 
 router.get(['/readme'], function(req, res, next){
-	res.redirect(302, '/readme.h8/tml');
+	res.redirect(302, '/readme.html');
 });
 
 router.get('/info', function(req, res, next){
