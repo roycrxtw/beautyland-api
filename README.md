@@ -1,35 +1,32 @@
 # Beatuyland API
 
-This is the data service of Beautyland Project. This api provides post data fetched from PTT beauty board.
+This is the data service of Beautyland Project. This api provides post data fetched from [PTT beauty](https://www.ptt.cc/bbs/Beauty) board.
 
 ## Usage
-You can simply send a get request to api root path to fetch the latest posts in PTT Beauty board. The post data will be formatted in JSON.
+You can simply send a get request to api root path to fetch the latest posts of PTT Beauty board. The post data will be formatted in JSON.
 ```
-http://royvbtw.uk:3004/
+https://beautyland-api.royvbtw.uk/
 ```
-Or you can get the most popular posts in 1 to 7 days by send this get request:
+Or you can get the most popular posts in a week by send this get request:
 ```
-http://royvbtw.uk:3004/trends/1
-// or
-http://royvbtw.uk:3004/trends/7
+https://beautyland-api.royvbtw.uk/trends
 ```
 
 ## JSON data format
 ```json
 {
-    link,
-    author,
-    postDate,
-    title,
-    postId,
-    imgUrls, // an image link array
-    clickCount,
-    createdAt
+  link,
+  author,
+  title,
+  postId,
+  images, // it contains image url, width and height data.
+  viewCount,
+  createdAt
 }
 ```
 
 ## Test
-The database-service test uses a local mongodb rather than a remote mongodb to speed up test. You must have a local mongodb installed on your computer if you want to run the test.
+The database-service test uses a local mongodb rather than a remote mongodb to speed up test. You must have a local mongodb installed on your machine if you want to run the test.
 
 To run the test:
 ```

@@ -51,7 +51,7 @@ function formatImgurUrl(url){
 
 /**
  * Get imgur image ID
- * @param {string} url imgur url
+ * @param {string} url The imgur url
  * @return {string} The matched imgur id, or **nomatch** if the url is imgur 
  * album, imgur gallery or any other invalid url.
  */
@@ -86,10 +86,9 @@ function getImgurUrlsFromText(text){
  * @property {string} postId The Post id
  * @property {string} author The post author
  * @property {string} title Post title
- * @property {string} postDate
- * @property {number} clickCount
- * @property {string} createdAt
- * @property {string[]} imgUrls An array which is saved every imgur urls 
+ * @property {number} viewCount
+ * @property {Date} createdAt
+ * @property {object[]} images An array which contains every imgur urls, image width and height.
  */
 
 /**
@@ -99,10 +98,10 @@ function getImgurUrlsFromText(text){
  */
 async function generatePost(postSummary){
 	try{
-		let html = (await util.loadHtml(postSummary.link)).body;
+		const html = (await util.loadHtml(postSummary.link)).body;
 	
-		let plainText = util.htmlToText(html);
-		let imgurUrls = getImgurUrlsFromText(plainText);
+		const plainText = util.htmlToText(html);
+		const imgurUrls = getImgurUrlsFromText(plainText);
 		if(imgurUrls.length === 0){
 			return false;	// No any image exists. Return false.
 		}
@@ -126,7 +125,7 @@ async function generatePost(postSummary){
 
 		let preparedPost = postSummary;
 		preparedPost.images = imageList;
-		preparedPost.clickCount = 0;
+		preparedPost.viewCount = 0;
 		preparedPost.createdAt = new Date();
 		return preparedPost;
 	}catch(ex){

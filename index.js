@@ -1,6 +1,6 @@
 
 /**
- * Project Beautyland
+ * Project Beautyland API
  * @author Roy Lu
  */
 
@@ -9,10 +9,12 @@
 var debug = require('debug')('app');
 var express = require('express');
 var app = express();
-const PORT = 3004;
+var bodyParser = require('body-parser');
 
-var config = require('./config/main.config');
+const config = require('./config/main.config');
 var DatabaseService = require('./database-service');
+
+const PORT = config.port;
 
 var log = require('bunyan').createLogger({
 	name: 'accesslog',
@@ -29,14 +31,14 @@ var cors = require('cors');
 app.use(cors());
 
 (async function init(){
-	console.log('index.js init()');
+	debug('index.js init()');
 	try{
-		console.log('trying to set up database service.');
+		debug('Trying to set up database service.');
 		let dbService = await DatabaseService();	// init for DatabaseService
-
+		
+		app.use(bodyParser.urlencoded({extended: true}));
 		app.use(require('./routers'));
 		
-
 		app.listen(PORT, function(){
 			console.log('Beautyland is listening on %s', PORT);
 		});

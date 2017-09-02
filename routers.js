@@ -11,7 +11,9 @@ var express = require('express'),
 var debug = require('debug')('routers');
 
 var config = require('./config/main.config');
+debug('Trying to require main-service');
 var service = require('./main-service');
+debug('Require main-service done.');
 
 var log = require('bunyan').createLogger({
 	name: 'accesslog',
@@ -39,7 +41,7 @@ router.use(function(req, res, next){
 });
 
 router.get(['/readme'], function(req, res, next){
-	res.redirect(302, '/readme.html');
+	res.redirect(302, '/readme.h8/tml');
 });
 
 router.get('/info', function(req, res, next){
@@ -71,12 +73,12 @@ router.get('/trends/:page?', async function(req, res, next){
 
 /**
  * Client will send request for this route. It works like a signal receiver.
- * The click count will be increased for that specific post.
+ * The view count will be increased for that specific post.
  */
 router.put('/post/:postId', async function(req, res, next){
 	try{
-		let postId = req.params.postId;
-		let flag = await service.updatePostViewCount(postId);
+		const postId = req.params.postId;
+		const flag = await service.updatePostViewCount(postId);
 		if(flag){
 			return res.status(200).send('Update ok.');
 		}else{
@@ -84,6 +86,25 @@ router.put('/post/:postId', async function(req, res, next){
 		}
 	}catch(ex){
 		log.error({postId: postId, ex: ex.stack}, 'Error in routers.put>post/:postId');
+		return res.sendStatus(500);
+	}
+});
+
+
+/**
+ * Build posts from Beauty board with the given page index.
+ */
+router.post('/build', async (req, res, next) => {
+	try{
+		const pageIndex = parseInt(req.body.pageIndex);
+		const flag = await service.buildPosts(pageIndex);
+		if(flag){
+			return res.status(200).send('Build request ok.');
+		}else{
+			return res.sendStatus(400);
+		}
+	}catch(ex){
+		log.error({postId: postId, ex: ex.stack}, 'Error in routers.post>/update');
 		return res.sendStatus(500);
 	}
 });

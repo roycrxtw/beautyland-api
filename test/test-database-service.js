@@ -21,7 +21,7 @@ let preparedPosts = [{
 	postId: 'test.id.karl',
 	title: '[dis] 2 types of question mark',
 	link: 'https://www.ptt.cc/bbs/Beauty/test.id.karl.html',
-	clickCount: 123,
+	viewCount: 123,
 	createdAt: new Date('2017-08-06T13:24:26.000Z'),
 	images: [
 		{url: 'http://i.imgur.com/G8mgxvB.jpg', width: 521, height: 534},
@@ -32,7 +32,7 @@ let preparedPosts = [{
 	postId: 'test.id.teemo',
 	title: 'Teemo can speak!',
 	link: 'https://www.ptt.cc/bbs/Beauty/test.id.teemo.html',
-	clickCount: 56,
+	viewCount: 56,
 	createdAt: new Date('2017-08-06T09:24:26.000Z'),
 	images: [
 		{url: 'http://i.imgur.com/lYPV8uO.jpg', width: 433, height: 234}, 
@@ -43,7 +43,7 @@ let preparedPosts = [{
 	postId: 'test.id.thrall',
 	title: 'For the horde',
 	link: 'https://www.ptt.cc/bbs/Beauty/test.id.thrall.html',
-	clickCount: 22,
+	viewCount: 22,
 	createdAt: new Date('Mon Aug 02 2017 18:24:26 GMT+0800 (台北標準時間)'),
 	images: [
 		{url: 'http://i.imgur.com/uJyaBIK.jpg', width: 858, height: 854}, 
@@ -122,7 +122,7 @@ describe('Testing for database-service', function(){
 				title: 'A greeting from Roy',
 				postDate: '8/07',
 				link: 'https://www.ptt.cc/bbs/Beauty/test.id.roy.html',
-				clickCount: 21,
+				viewCount: 21,
 				createdAt: new Date,
 				imgUrls: ['http://i.imgur.com/G8mgxvB.jpg', 'http://i.imgur.com/aQOUYt3.jpg']
 			};
@@ -168,9 +168,9 @@ describe('Testing for database-service', function(){
 		});
 	});
 
-	describe('database-service.updatePostClickCount(postId): Update post click count by 1', function(){
+	describe('database-service.updatePostViewCount(postId): Update post click count by 1', function(){
 		it('should return true if postId exists', async function(){
-			let result = await dbService.updatePostClickCount({
+			let result = await dbService.updatePostViewCount({
 				postId: 'test.id.teemo', 
 				collectionName: 'test'
 			});
@@ -179,21 +179,21 @@ describe('Testing for database-service', function(){
 
 		it('should return false if postId does not exist', async function(){
 			// to test if postId doesn't exist
-			let result1 = await dbService.updatePostClickCount({
+			let result1 = await dbService.updatePostViewCount({
 				postId: 'test.id.ghost', 
 				collectionName: 'test'
 			});
 			expect(result1).to.be.false;
 		});
 
-		it('should have expected click count if process finished', async function(){
-			await dbService.updatePostClickCount({
+		it('should have expected view counts if process finished', async function(){
+			await dbService.updatePostViewCount({
 				postId: 'test.id.teemo', 
 				collectionName: 'test'
 			});
 
 			let result = await testCollection.findOne({postId: 'test.id.teemo'});
-			expect(result.clickCount).to.equal(57);
+			expect(result.viewCount).to.equal(57);
 		});
 	});
 });

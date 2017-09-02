@@ -35,6 +35,7 @@ class DatabaseService{
 	async connect(){
 		if(!this.conn){
 			try{
+				debug('connecting.');
 				log.info('DatabaseService.connect(): Now trying to connect to database.');
 				let db = await MongoClient.connect(this.dburl, connectionOptions);
 				this.conn = db;
@@ -147,11 +148,11 @@ class DatabaseService{
 		return (this.conn)? true: false;
 	}
 
-	async updatePostClickCount({postId, collectionName = 'posts'} = {}){
+	async updatePostViewCount({postId, collectionName = 'posts'} = {}){
 		try{
-			debug('updatePostClickCount, args=', arguments);
-			let r = await this.conn.collection(collectionName).findOneAndUpdate(
-				{postId: postId},  {$inc: {clickCount: 1}}, {returnOriginal: false}
+			debug('updatePostViewCount, args=', arguments);
+			const r = await this.conn.collection(collectionName).findOneAndUpdate(
+				{postId: postId},  {$inc: {viewCount: 1}}, {returnOriginal: false}
 			);
 
 			if(r.ok && r.value){
@@ -162,7 +163,7 @@ class DatabaseService{
 		}catch(ex){
 			log.error(
 				{args: arguments, ex: ex.stack}, 
-				'Error in database-service.updatePostClickCount()'
+				'Error in database-service.updatePostViewCount()'
 			);
 			return false;
 		}

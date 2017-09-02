@@ -89,7 +89,7 @@ async function getTrendsPage({range = 1, page = 1} = {}){
 			var offset = new Date().setDate(new Date().getDate() - range);
 			let posts = await dbService.readPosts({
 				query: {createdAt: {$gte: new Date(offset)}},
-				order: {clickCount: -1},
+				order: {viewCount: -1},
 				size: defaultPageSize,
 				skip: defaultPageSize * (page - 1)
 			});
@@ -125,7 +125,7 @@ async function updatePreloadList(){
  */
 async function updatePostViewCount(postId){
 	try{
-		let flag = await dbService.updatePostClickCount({postId: postId});
+		let flag = await dbService.updatePostViewCount({postId: postId});
 		return flag;
 	}catch(ex){
 		log.error({postId: postId, ex: ex.stack}, 'Error in main-service.updatePostViewCount()');
@@ -133,6 +133,21 @@ async function updatePostViewCount(postId){
 }
 
 
+async function buildPosts(pageIndex){
+	if(!Number.isInteger(pageIndex)){
+		return false;
+	}
+	try{
+		const url = 'https://www.ptt.cc/bbs/Beauty/index' + pageIndex + '.html';
+		daemon.send({cmd: 'buildPosts', url: url});
+		return true;
+	}catch(ex){
+		log.error({args: arguments, ex: ex.stack}, 'Error in main-service.buildPosts().');
+		return false;
+	}
+}
+
 module.exports.getIndexPage = getIndexPage;
 module.exports.getTrendsPage = getTrendsPage;
 module.exports.updatePostViewCount = updatePostViewCount;
+module.exports.buildPosts = buildPosts;
