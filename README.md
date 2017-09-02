@@ -1,9 +1,9 @@
 # Beatuyland API
 
-This is the data service of Beautyland Project. This api provides post data fetched from [PTT beauty](https://www.ptt.cc/bbs/Beauty) board.
+This is the data service of Beautyland Project. This api provides the post data fetched from [PTT Beauty](https://www.ptt.cc/bbs/Beauty) board.
 
 ## Usage
-You can simply send a get request to api root path to fetch the latest posts of PTT Beauty board. The post data will be formatted in JSON.
+You can simply send a GET request to API root path to fetch the latest posts of PTT Beauty board. The post data will be formatted in JSON.
 ```
 https://beautyland-api.royvbtw.uk/
 ```
@@ -12,8 +12,9 @@ Or you can get the most popular posts in a week by send this get request:
 https://beautyland-api.royvbtw.uk/trends
 ```
 
-## JSON data format
-```json
+## The data format
+The returned data will be formatted in JSON.
+```
 {
   link,
   author,
