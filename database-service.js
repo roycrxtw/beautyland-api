@@ -98,7 +98,8 @@ class DatabaseService{
 				if(doc){	// find a post
 					return resolve(doc);
 				}else{		// Doesn't find a post
-					return resolve({message: 'No result.'});
+					//return resolve({message: 'No result.'});
+					return resolve({});
 				}
 			});
 		});

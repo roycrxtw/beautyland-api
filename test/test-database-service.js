@@ -140,6 +140,11 @@ describe('Testing for database-service', function(){
 			expect(post.link).to.equal(preparedPosts[1].link);
 			expect(post.images).to.deep.equal(preparedPosts[1].images);
 		});
+
+		it('should return an empty object if the post does not exist', async () => {
+			const post = await dbService.readPost('test.id.ghost', 'test');
+			expect(post).to.be.empty;
+		});
 	});
 
 

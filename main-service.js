@@ -77,6 +77,21 @@ async function getIndexPage(page = 1){
 
 
 /**
+ * Get the post data from database
+ * @param {string} postId The post id
+ * @return {object} The post data or an empty object if the post doesn't exist.
+ */
+async function getPost(postId){
+	try{
+		const post = await dbService.readPost(postId);
+		return post;
+	}catch(ex){
+		log.error({args: arguments, ex: ex.stack}, 'Error in main-service.getPost()');
+	}
+}
+
+
+/**
  * Serve trends page.
  * @param {number} period Preiod of click trends. It only accepts values from 1 to 7.
  */
@@ -148,6 +163,7 @@ async function buildPosts(pageIndex){
 }
 
 module.exports.getIndexPage = getIndexPage;
+module.exports.getPost = getPost;
 module.exports.getTrendsPage = getTrendsPage;
 module.exports.updatePostViewCount = updatePostViewCount;
 module.exports.buildPosts = buildPosts;

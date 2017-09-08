@@ -72,6 +72,25 @@ router.get('/trends/:page?', async function(req, res, next){
 
 
 /**
+ * Get the post data in json for the specified post id
+ */
+router.get('/post/:postId', async (req, res, next) => {
+	try{
+		const postId = req.params.postId;
+		debug('get>/post/:postId', postId);
+
+		// call the main service to handler this request.
+		// It will return an empty object {} when the post doesn't exist.
+		const post = await service.getPost(postId);
+		debug('router.post=', post);
+		return res.json(post);
+	}catch(ex){
+		log.error({postId: req.params.postId, ex: ex.stack}, 'Error in routers.get>post/:postId');
+		return res.sendStatus(500);
+	}
+});
+
+/**
  * Client will send request for this route. It works like a signal receiver.
  * The view count will be increased for that specific post.
  */
@@ -85,7 +104,7 @@ router.put('/post/:postId', async function(req, res, next){
 			return res.sendStatus(400);
 		}
 	}catch(ex){
-		log.error({postId: postId, ex: ex.stack}, 'Error in routers.put>post/:postId');
+		log.error({postId: req.params.postId, ex: ex.stack}, 'Error in routers.put>post/:postId');
 		return res.sendStatus(500);
 	}
 });
