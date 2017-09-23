@@ -4,7 +4,7 @@
   "description": "The data service api for Beautyland project.",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
+    "start": "nodemon index.js",
     "test": "./node_modules/.bin/mocha -c"
   },
   "author": "Roy Lu (royvbtw)",
@@ -22,7 +22,8 @@
   "devDependencies": {
     "chai": "^4.1.2",
     "debug": "^2.6.9",
-    "mocha": "^3.5.3"
+    "mocha": "^3.5.3",
+    "nodemon": "^1.12.1"
   },
   "repository": {
     "type": "git",

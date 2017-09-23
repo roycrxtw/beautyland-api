@@ -1,7 +1,9 @@
 
 /**
  * Project Beautyland
+ * Main service
  * @author Roy Lu
+ * Sep 2017
  */
 
 'use strict';
@@ -12,28 +14,35 @@ var cheerio = require('cheerio');
 
 var preloadList = require('./preload-list');
 var dbService = require('./database-service').getInstance('main-service');
+//var dbService = require('./database-service')();
 
-var config = require('./config/main.config');
-var defaultPageSize = Number(config.defaultPageSize);
+const config = require('./config/main.config');
+const PAGE_SIZE = Number(config.defaultPageSize);
+
+let logSettings = {};
+if(config.env === 'production'){
+	logSettings = [
+    {level: config.LOG_LEVEL, path: 'log/main.log'}, 
+    {level: 'error', path: 'log/error.log'}
+  ];
+}else{
+  logSettings = [{level: 'debug', stream: process.stdout}];
+}
 
 var log = require('bunyan').createLogger({
-	name: 'accesslog',
-	streams: [
-        {level: config.LOG_LEVEL, path: 'log/main.log'}, 
-        {level: 'error', path: 'log/error.log'}
-    ]
+  name: 'accesslog',
+  streams: logSettings
 });
-
-const BASE_URL = 'https://www.ptt.cc';
-const BORDER_URL = 'https://www.ptt.cc/bbs/Beauty/';
 
 var daemon = null;
 
+
 (async function init(){
-	debug('main-service.init() started');
-	await updatePreloadList();
-	debug('main-service.init() end');
+  log.info('main-service.init() started');
+  await updatePreloadList();
+  log.info('main-service.init() end');
 })();
+
 
 (async function callDaemon(){
 	try{
@@ -54,20 +63,19 @@ var daemon = null;
 
 /**
  * Main handler for a request to index page
- * @param {number} page 
+ * @param {number} page page number
  */
 async function getIndexPage(page = 1){
-	page = parseInt(page);
 	try{
-		log.info('getIndexPage() started. page=%s', page);
-		if(page < 0 || page === NaN){
-			page = 1;
-		}
+		log.info(`getIndexPage() started. page=${page}`);
+		page = parseInt(page);
+		page = (page < 0 || page === NaN)? 1: page;
+
 		if(page <= 2){		// preloadList is a cached post list.
 			return preloadList.getList(page).posts;
 		}else{
-			let skip = (page - 1) * defaultPageSize;
-			let posts = await dbService.readPosts({skip: skip, size: defaultPageSize});
+			const skip = (page - 1) * PAGE_SIZE;
+			const posts = await dbService.readPosts({skip: skip, size: PAGE_SIZE});
 			return posts;
 		}
 	}catch(ex){
@@ -90,32 +98,60 @@ async function getPost(postId){
 	}
 }
 
-
 /**
- * Serve trends page.
- * @param {number} period Preiod of click trends. It only accepts values from 1 to 7.
+ * A function wrapper for getTrendsPage() with monthly range.
+ * @param {number} page The page number
  */
-async function getTrendsPage({range = 1, page = 1} = {}){
-	debug('getTrendsPage, page=', page);
-	range = parseInt(range);
-	page = parseInt(page);
-	if( range >=1 && range <= 30 && page >= 1){
-		try{
-			var offset = new Date().setDate(new Date().getDate() - range);
-			let posts = await dbService.readPosts({
-				query: {createdAt: {$gte: new Date(offset)}},
-				order: {viewCount: -1},
-				size: defaultPageSize,
-				skip: defaultPageSize * (page - 1)
-			});
-			return posts;
-		}catch(ex){
-			log.error({args: arguments, ex: ex.stack}, 'Error in main-service.getTrendsPage()');
-		}
-	}else{
-		throw new Error('Invalid page/range value.');
+async function getMonthlyTrendsPage(page = 1){
+	try{
+		const range = 30;
+		return await getTrendsPage({page, range});
+	}catch(ex){
+		log.error({args: arguments, ex: ex.stack}, 'Error in main-service.getWeeklyTrendsPage()');
 	}
 }
+
+
+/**
+ * A function wrapper for getTrendsPage() with weekly range.
+ * @param {number} page The page number
+ */
+async function getWeeklyTrendsPage(page = 1){
+	try{
+		const range = 7;
+		return await getTrendsPage({page, range});
+	}catch(ex){
+		log.error({args: arguments, ex: ex.stack}, 'Error in main-service.getWeeklyTrendsPage()');
+	}
+}
+
+
+/**
+ * Serve the trends page.
+ * @param {number} range Range in day for this query.
+ * @param {number} page The page number.
+ */
+async function getTrendsPage({range = 1, page = 1} = {}){	
+	// secure data
+	range = parseInt(range);
+	range = (range < 0 || range === NaN)? 7: range;
+	page = parseInt(page);
+	page = (page < 0 || page === NaN)? 1: page;
+
+	try{
+		const timeOffset = new Date().setDate(new Date().getDate() - range);
+		const posts = await dbService.readPosts({
+			query: {createdAt: { $gte: new Date(timeOffset) }},
+			order: {viewCount: -1},
+			size: PAGE_SIZE,
+			skip: PAGE_SIZE * (page - 1)
+		});
+		return posts;
+	}catch(ex){
+		log.error({args: arguments, ex: ex.stack}, 'Error in main-service.getTrendsPage()');
+	}
+}
+
 
 /**
  * Update the preload list.
@@ -140,8 +176,7 @@ async function updatePreloadList(){
  */
 async function updatePostViewCount(postId){
 	try{
-		let flag = await dbService.updatePostViewCount({postId: postId});
-		return flag;
+		return await dbService.updatePostViewCount({postId: postId});
 	}catch(ex){
 		log.error({postId: postId, ex: ex.stack}, 'Error in main-service.updatePostViewCount()');
 	}
@@ -165,5 +200,7 @@ async function buildPosts(pageIndex){
 module.exports.getIndexPage = getIndexPage;
 module.exports.getPost = getPost;
 module.exports.getTrendsPage = getTrendsPage;
+module.exports.getWeeklyTrendsPage = getWeeklyTrendsPage;
+module.exports.getMonthlyTrendsPage = getMonthlyTrendsPage;
 module.exports.updatePostViewCount = updatePostViewCount;
 module.exports.buildPosts = buildPosts;

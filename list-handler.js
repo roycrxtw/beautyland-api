@@ -1,8 +1,9 @@
 
 /**
  * Project Beautyland API
- * This handler parse ptt contents to formatted data
+ * This is a html parser specially designed for the ptt contents.
  * @author Roy Lu
+ * Sep 2017
  */
 
 'use strict';
@@ -11,15 +12,22 @@ var debug = require('debug')('list-handler');
 var request = require('request');
 var cheerio = require('cheerio');
 
-var config = require('./config/main.config');
+const config = require('./config/main.config');
 var util = require('./util');
+
+let logSettings = {};
+if(config.env === 'production'){
+	logSettings = [
+    {level: config.LOG_LEVEL, path: 'log/list-handler.log'}, 
+    {level: 'error', path: 'log/error.log'}
+  ];
+}else{
+  logSettings = [{level: 'debug', stream: process.stdout}];
+}
 
 var log = require('bunyan').createLogger({
 	name: 'list-handler',
-	streams: [{
-		level: config.LOG_LEVEL,
-		path: 'log/list-handler.log'
-	}]
+	streams: logSettings
 });
 
 const BASE_URL = 'https://www.ptt.cc';
@@ -35,8 +43,8 @@ module.exports.getPostId = getPostId;
 
 /**
  * Format imgur url to a https direct link.
- * @param {string} url Target imgur url
- * @return {string} Formatted imgur URL, or null if it is invalid imgur url.
+ * @param {string} url An imgur url
+ * @return {string} Formatted imgur URL, or returns null if it is invalid imgur url.
  */
 function formatImgurUrl(url){
 	const imgurId = getImgurId(url);
@@ -51,7 +59,7 @@ function formatImgurUrl(url){
 
 /**
  * Get imgur image ID
- * @param {string} url The imgur url
+ * @param {string} url An imgur url
  * @return {string} The matched imgur id, or **nomatch** if the url is imgur 
  * album, imgur gallery or any other invalid url.
  */
@@ -68,9 +76,9 @@ function getImgurId(url){
 
 
 /**
- * Get imgur urls from plain text content.
+ * Get all imgur urls from the given plain text content.
  * @param {string} text plain text
- * @return {string[]} urls A url array parsed from plain text
+ * @return {string[]} A url array parsed from the given plain text
  */
 function getImgurUrlsFromText(text){
 	let urls = text.match(imgurUrlPattern);
@@ -135,8 +143,8 @@ async function generatePost(postSummary){
 
 
 /**
- * Get post id from specified PTT url
- * @param {string} url PTT url
+ * Get post id from the given PTT url
+ * @param {string} url a PTT url
  */
 function getPostId(url){
 	const pattern = /^.*\/(.*)\.html$/;

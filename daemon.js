@@ -13,17 +13,24 @@ var debug = require('debug')('daemon');
 var util = require('./util');
 var listHandler = require('./list-handler');
 var DatabaseService = require('./database-service');
-var config = require('./config/main.config');
 
-const BORDER_URL = 'https://www.ptt.cc/bbs/Beauty/index.html';
+const config = require('./config/main.config');
+const BOARD_URL = config.boardUrl;
 const PERIOD = config.fetchPeriod;
 
+let logSettings = {};
+if(config.env === 'production'){
+  logSettings = [
+    {level: config.LOG_LEVEL, path: 'log/daemon.log'}, 
+    {level: 'error', path: 'log/error.log'}
+  ];
+}else{
+  logSettings = [{level: 'debug', stream: process.stdout}];
+}
+
 var log = require('bunyan').createLogger({
-	name: 'accesslog',
-	streams: [
-        {level: config.LOG_LEVEL, path: 'log/daemon.log'}, 
-        {level: 'error', path: 'log/error.log'}
-    ]
+  name: 'daemon',
+  streams: logSettings
 });
 
 
@@ -33,13 +40,12 @@ let dbService = null;
 
 
 /**
- * 
+ * To build posts from the given url
  * @param {string} url Post list url
  */
-async function buildPosts(url = BORDER_URL){
+async function buildPosts(url = BOARD_URL){
   try{
     if(!dbService){
-      debug('dbService does not exist. exit buildPosts().');
       return false;
     }
     const pttContent = await util.loadHtml(url);
@@ -48,10 +54,8 @@ async function buildPosts(url = BORDER_URL){
 
     let preparedPost = null;
     for(let i = 0; i < list.length; i++){
-      debug('Processing item %s/%s. postId=%s', i, list.length, list[i].postId);
-      let flag = await dbService.checkPostExists(list[i].postId);
+      const flag = await dbService.checkPostExists(list[i].postId);
       if(!flag){
-        debug('Post does not exist in database, it needs to save to database');
         preparedPost = await listHandler.generatePost(list[i]);
         if(preparedPost){
           await dbService.savePost(preparedPost);
@@ -59,7 +63,7 @@ async function buildPosts(url = BORDER_URL){
           // preparedPost did not generate, do nothing.
         }
       }else{
-        debug('Post exists, do nothing.');
+        log.debug('Post exists, do nothing.');
       }
     }
     // Send a command message to parent process(main-service) to update its preloadList
@@ -70,10 +74,12 @@ async function buildPosts(url = BORDER_URL){
 }
 
 
+/**
+ * This will et up its own database service. It doesn't share db connection with main-process.
+ */
 (async function run(){
   log.info('daemon.run() started.');
   try{
-    // Set up its own database service. It doesn't share db connection with main-process.
     dbService = await DatabaseService();
     while(true){    // run forever
       await buildPosts();
@@ -86,7 +92,7 @@ async function buildPosts(url = BORDER_URL){
 
 
 function sleep(ms){
-    return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 

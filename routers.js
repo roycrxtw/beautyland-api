@@ -1,105 +1,126 @@
 
 /**
  * Beautyland project
+ * Routers
  * @author Roy Lu
  */
 
 'use strict';
 
-var express = require('express'),
-	router = express.Router();
+var express = require('express');
+var router = express.Router();
 var debug = require('debug')('routers');
 
-var config = require('./config/main.config');
-debug('Trying to require main-service');
+const config = require('./config/main.config');
 var service = require('./main-service');
-debug('Require main-service done.');
+
+let logSettings = {};
+if(config.env === 'production'){
+	logSettings = [
+    {level: config.LOG_LEVEL, path: 'log/routers.log'}, 
+    {level: 'error', path: 'log/error.log'}
+  ];
+}else{
+  logSettings = [{level: 'debug', stream: process.stdout}];
+}
 
 var log = require('bunyan').createLogger({
 	name: 'accesslog',
-	streams: [{
-		level: config.LOG_LEVEL,
-		path: 'log/routers.log'
-	}]
+	streams: logSettings
 });
+
 
 // Accesslog middleware
 // This middleware will log every possibie client ips using bunyan module
 router.use(function(req, res, next){
-	if(req.path === '/favicon.ico'){	// ignore the request for favicon.ico
-		return next();
-	}
+  if(req.path === '/favicon.ico'){	// ignore the request for favicon.ico
+    return next();
+  }
 	log.info({
-		path: req.url, 
-		xReadIp: req.headers['x-real-ip'],
-		xForwardFor: req.headers['x-forwarded-for'], 
-		remoteAddress: req.connection.remoteAddress,
-		socketRemoteAddress: req.socket.remoteAddress
-	}, 'Access log');
-	
-	next();
+    path: req.url, 
+    xReadIp: req.headers['x-real-ip'],
+    xForwardFor: req.headers['x-forwarded-for'],
+    remoteAddress: req.connection.remoteAddress, 
+    socketRemoteAddress: req.socket.remoteAddress
+  }, 'Access log');
+
+  next();
 });
+
 
 router.get(['/readme'], function(req, res, next){
-	res.redirect(302, '/readme.html');
+  res.redirect(302, '/readme.html');
 });
 
+
 router.get('/info', function(req, res, next){
-	res.json({message: 'This is Beautyland api, author: Roy Lu. Aug 2017. #0717'});
+	res.json({message: 'Beautyland API, author: Roy Lu. Sep 2017. #0717'});
 });
+
 
 router.get(['/', '/latest/:page?'], async function(req, res, next){
 	try{
-		let page = (req.params.page)? parseInt(req.params.page): 1;
-		let posts = await service.getIndexPage(page);
-		return res.json(posts);
+	  const page = (req.params.page)? parseInt(req.params.page): 1;
+	  const posts = await service.getIndexPage(page);
+	  return res.json(posts);
 	}catch(ex){
-		log.error({page: req.params.page, ex: ex.stack}, 'Error in routers.get>latest');
-		return res.sendStatus(500);
-	}
+    log.error({page: req.params.page, ex: ex.stack}, 'Error in routers.get>latest');
+    return res.sendStatus(500);
+  }
 });
 
-router.get('/trends/:page?', async function(req, res, next){
-	try{
-		let page = (req.params.page)? parseInt(req.params.page): 1;
-		let posts = await service.getTrendsPage({range: 7, page: page});
-		return res.json(posts);
-	}catch(ex){
-		log.error({page: req.params.arg, ex: ex.stack}, 'Error in routers.get>trends');
-		return res.sendStatus(500);
-	}
+
+router.get(['/trends/:page?', '/trends/monthly/:page?'], async (req, res, next) => {
+  try{
+	  const page = (req.params.page)? parseInt(req.params.page): 1;
+	  const posts = await service.getMonthlyTrendsPage(page);
+	  return res.json(posts);
+  }catch(ex){
+	  log.error({page: req.params.page, ex: ex.stack}, 'Error in routers.get>/trends/monthly');
+	  return res.sendStatus(500);
+  }
+});
+
+
+router.get('/trends/weekly/:page?', async function(req, res, next){
+  try{
+	  const page = (req.params.page)? parseInt(req.params.page): 1;
+	  const posts = await service.getWeeklyTrendsPage(page);
+	  return res.json(posts);
+  }catch(ex){
+	  log.error({page: req.params.page, ex: ex.stack}, 'Error in routers.get>/trends/weekly');
+	  return res.sendStatus(500);
+  }
 });
 
 
 /**
- * Get the post data in json for the specified post id
+ * Get the post data for the given post id.
  */
 router.get('/post/:postId', async (req, res, next) => {
 	try{
 		const postId = req.params.postId;
-		debug('get>/post/:postId', postId);
+		log.info(`get>/post/${postId}`);
 
 		// call the main service to handler this request.
 		// It will return an empty object {} when the post doesn't exist.
 		const post = await service.getPost(postId);
-		debug('router.post=', post);
 		return res.json(post);
 	}catch(ex){
-		log.error({postId: req.params.postId, ex: ex.stack}, 'Error in routers.get>post/:postId');
+		log.error({postId: req.params.postId, ex: ex.stack}, 'Error in routers.get>/post/:postId');
 		return res.sendStatus(500);
 	}
 });
 
 /**
- * Client will send request for this route. It works like a signal receiver.
- * The view count will be increased for that specific post.
+ * Update post view count for the specified post when recevied put request.
  */
 router.put('/post/:postId', async function(req, res, next){
 	try{
 		const postId = req.params.postId;
 		const flag = await service.updatePostViewCount(postId);
 		if(flag){
-			return res.status(200).send('Update ok.');
+			return res.status(200).send('ViewCount updating ok.');
 		}else{
 			return res.sendStatus(400);
 		}
@@ -123,7 +144,7 @@ router.post('/build', async (req, res, next) => {
 			return res.sendStatus(400);
 		}
 	}catch(ex){
-		log.error({postId: postId, ex: ex.stack}, 'Error in routers.post>/update');
+		log.error({pageIndex: parseInt(req.body.pageIndex), ex: ex.stack}, 'Error in routers.post>/build');
 		return res.sendStatus(500);
 	}
 });

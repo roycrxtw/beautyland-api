@@ -12,42 +12,74 @@ var debug = require('debug')('db');
 
 var MongoClient = require('mongodb').MongoClient;
 
-var config = require('./config/main.config');
+const config = require('./config/main.config');
+const dbConfig = require('./config/db.config');
 const connectionOptions = {
 	keepAlive: 300000,
 	connectTimeoutMS: 50000
-}; 
+};
+
+let logSettings = {};
+if(config.env === 'production'){
+  logSettings = [
+    {level: config.LOG_LEVEL, path: 'log/db.log'}, 
+    {level: 'error', path: 'log/error.log'}
+  ];
+}else{
+	logSettings = [{level: 'debug', stream: process.stdout}];
+}
 
 var log = require('bunyan').createLogger({
 	name: 'db',
-	streams: [{
-		level: config.LOG_LEVEL,
-		path: 'log/db.log'
-	}]
+	streams: logSettings
 });
+
 
 class DatabaseService{
 	constructor(url){
-		this.dburl = url || config.dburl;
+		this.dburl = url || dbConfig.dbUrl;
 		this.conn = null;
 	}
 	
 	async connect(){
 		if(!this.conn){
 			try{
-				debug('connecting.');
-				log.info('DatabaseService.connect(): Now trying to connect to database.');
-				let db = await MongoClient.connect(this.dburl, connectionOptions);
-				this.conn = db;
+				this.conn = await MongoClient.connect(this.dburl, connectionOptions);
 				log.info('DatabaseService.connect() finished.');
 			}catch(ex){
 				log.error({ex: ex.stack}, 'Error in database-service.connect()');
 			}
-		}else{
-			debug('DatabaseService.connect(): Connection exists. Do nothing.');
 		}
 	}
 
+	/**
+	 * @param {string} postId The post id
+	 * @param {string} collectionName The collection name.
+	 * @return {Promise<boolean>} Resolve true if the post exists.
+	 */
+	checkPostExists(postId, collectionName = 'posts'){
+		return new Promise( (resolve, reject) => {
+			if(!this.conn){
+				return reject('Database connection does not exist.');
+			}
+
+			this.conn.collection(collectionName).findOne({postId: postId}, function(err, doc){
+				if(err){
+					return reject(err);
+				}
+				if(doc){	// found a post
+					return resolve(true);
+				}else{		// doesn't find a post
+					return resolve(false);
+				}
+			});
+		});
+	}
+
+	isConnected(){
+		return (this.conn)? true: false;
+	}
+	
 	savePost(preparedPost, collectionName = 'posts'){
 		return new Promise( (resolve, reject) => {
 			if(!this.conn){
@@ -66,25 +98,12 @@ class DatabaseService{
 		});
 	}
 
-	checkPostExists(postId, collectionName = 'posts'){
-		//debug('checkPostExists(): postId=%s, collectionName=%s', postId, collectionName);
-		return new Promise( (resolve, reject) => {
-			if(!this.conn){
-				return reject('Database connection does not exist.');
-			}
-			this.conn.collection(collectionName).findOne({postId: postId}, function(err, doc){
-				if(err){
-					return reject(err);
-				}
-				if(doc){	// find a post
-					return resolve(true);
-				}else{		// Doesn't find a post
-					return resolve(false);
-				}
-			});
-		});
-	}
-	
+	/**
+	 * Read post from database.
+	 * @param {string} postId The post id
+	 * @param {string} collectionName The collection name
+	 * @return {object} The found post, or an empty object if there is no result for the specified postId.
+	 */
 	readPost(postId, collectionName = 'posts'){
 		return new Promise( (resolve, reject) => {
 			if(!this.conn){
@@ -95,15 +114,37 @@ class DatabaseService{
 				if(err){
 					return reject(err);
 				}
-				if(doc){	// find a post
+				if(doc){	// found a post
 					return resolve(doc);
 				}else{		// Doesn't find a post
-					//return resolve({message: 'No result.'});
 					return resolve({});
 				}
 			});
 		});
 	}
+
+
+	readPosts({query = {}, order = {createdAt: -1}, size = 10, skip = 0, collectionName = 'posts'} = {}){		
+		return new Promise( (resolve, reject) => {
+			if(!this.conn){
+				return reject('Database connection does not exist.');
+			}
+			this.conn.collection(collectionName).find(query).sort(order)
+					.skip(skip).limit(size).project({_id: 0}).toArray(function(err, docs){
+				if(err){
+					return reject(err);
+				}
+				if(docs){
+					debug('Found %s docs.', docs.length);
+					return resolve(docs);
+				}else{
+					debug('No results.');
+					return resolve({message: 'No results.'});
+				}
+			});
+		});
+	}
+
 
 	deletePost(postId, collectionName = 'posts'){
 		return new Promise( (resolve, reject) => {
@@ -124,34 +165,8 @@ class DatabaseService{
 	}
 
 
-	readPosts({query = {}, order = {createdAt: -1}, size = 10, skip = 0, collectionName = 'posts'} = {}){		
-		return new Promise( (resolve, reject) => {
-			if(!this.conn){
-				return reject('Db does not exist.');
-			}
-			debug('readPosts, arguments=', arguments);
-			this.conn.collection(collectionName).find(query).sort(order)
-					.skip(skip).limit(size).project({_id: 0}).toArray(function(err, docs){
-				if(err){
-					return reject(err);
-				}
-				if(docs){
-					debug('Found %s docs.', docs.length);
-					return resolve(docs);
-				}else{
-					return resolve({message: 'No results.'});
-				}
-			});
-		});
-	}
-
-	isConnected(){
-		return (this.conn)? true: false;
-	}
-
 	async updatePostViewCount({postId, collectionName = 'posts'} = {}){
 		try{
-			debug('updatePostViewCount, args=', arguments);
 			const r = await this.conn.collection(collectionName).findOneAndUpdate(
 				{postId: postId},  {$inc: {viewCount: 1}}, {returnOriginal: false}
 			);
@@ -162,14 +177,12 @@ class DatabaseService{
 				return false;
 			}
 		}catch(ex){
-			log.error(
-				{args: arguments, ex: ex.stack}, 
-				'Error in database-service.updatePostViewCount()'
-			);
+			log.error({args: arguments, ex: ex.stack}, 'Error in db-service.updatePostViewCount()');
 			return false;
 		}
 	}
 }
+
 
 var instance = null;
 
@@ -188,10 +201,8 @@ module.exports = async function(url){
 
 module.exports.getInstance = function(source){
 	if(instance){
-		console.log('%s want to get instance, we will give them.', source);
 		return instance;
 	}else{
-		console.log('%s want to get instance, but there is no instance.', source);
 		throw new Error('Database service instance doesn\'t exist.');
 	}
 }
