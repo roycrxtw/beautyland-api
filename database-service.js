@@ -16,7 +16,9 @@ const config = require('./config/main.config');
 const dbConfig = require('./config/db.config');
 const connectionOptions = {
 	keepAlive: 300000,
-	connectTimeoutMS: 50000
+	connectTimeoutMS: 50000,
+	reconnectTries: Number.MAX_VALUE,
+	reconnectInterval: 2000
 };
 
 let logSettings = {};
