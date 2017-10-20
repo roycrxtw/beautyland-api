@@ -65,7 +65,7 @@ describe('Test for list-handler', function(){
 	
 		it('should return expected list length', function(){
 			let list = handler.getList(file);
-			expect(list.length).to.equal(13);
+			expect(list.length).to.equal(9);
 		}); 
 	
 		it('should has expected result loaded from example-list.html', async function(){

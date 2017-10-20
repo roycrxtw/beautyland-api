@@ -175,6 +175,9 @@ function getList(htmlContent){
 		postSummary.author = $(this).find('.author').text();
 		let temp = $(this).find('.title').text();
 		postSummary.title = temp.replace(/[\t\n\r]/g, '');
+		if(postSummary.title.match(/^\[公告\].*$/)){  // exclude '公告'
+			return true;
+		}
 		postSummary.postId = getPostId(path);
 
 		list.push(postSummary);

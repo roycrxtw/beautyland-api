@@ -11,7 +11,7 @@ var connectionOptions = {
 }; 
 
 // Use a local mongodb to test the database-service.js
-const TEST_DB_URL = require('../config/db.config').testUrl;
+const TEST_DB_URL = require('../config/main.config').testDbUrl;
 var db = null;
 var testCollection = null;
 let dbService = null;
