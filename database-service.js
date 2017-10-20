@@ -15,10 +15,10 @@ var MongoClient = require('mongodb').MongoClient;
 const config = require('./config/main.config');
 const dbConfig = require('./config/db.config');
 const connectionOptions = {
-	keepAlive: 300000,
-	connectTimeoutMS: 50000,
-	reconnectTries: Number.MAX_VALUE,
-	reconnectInterval: 2000
+  keepAlive: 300000,
+  connectTimeoutMS: 50000,
+  reconnectTries: Number.MAX_VALUE,
+  reconnectInterval: 2000
 };
 
 let logSettings = {};
@@ -38,18 +38,18 @@ var log = require('bunyan').createLogger({
 
 
 class DatabaseService{
-	constructor(url){
+  constructor(url){
 		this.dburl = url || dbConfig.dbUrl;
 		this.conn = null;
 	}
 	
 	async connect(){
-		if(!this.conn){
+	  if(!this.conn){
 			try{
 				this.conn = await MongoClient.connect(this.dburl, connectionOptions);
 				log.info('DatabaseService.connect() finished.');
-			}catch(ex){
-				log.error({ex: ex.stack}, 'Error in database-service.connect()');
+		  }catch(ex){
+			  log.error({ex: ex.stack}, 'Error in database-service.connect()');
 			}
 		}
 	}
