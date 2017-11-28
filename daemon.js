@@ -54,8 +54,8 @@ async function buildPosts(url = BOARD_URL){
 
     let preparedPost = null;
     for(let i = 0; i < list.length; i++){
-      const flag = await dbService.checkPostExists(list[i].postId);
-      if(!flag){
+      const isExist = await dbService.checkPostExists(list[i].postId);
+      if(!isExist){
         preparedPost = await listHandler.generatePost(list[i]);
         if(preparedPost){
           await dbService.savePost(preparedPost);

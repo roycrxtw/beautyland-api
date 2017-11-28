@@ -57,25 +57,25 @@ describe('Test for list-handler', function(){
 	});
 
 
-	describe('list-handler.getList(): Get list from html', function(){
-		let file = null;
-		before(function(){
-			file = fs.readFileSync('./test/example-list.html', 'utf8');
-		});
-	
-		it('should return expected list length', function(){
-			let list = handler.getList(file);
-			expect(list.length).to.equal(9);
-		}); 
-	
-		it('should has expected result loaded from example-list.html', async function(){
-			let results = handler.getList(file);
-			expect(results[3].author).to.equal('bbac99119');
-			expect(results[3].title).to.equal('[神人] 光陽showgirl');
-			expect(results[3].postId).to.equal('M.1502034628.A.9D5');
-			expect(results[3].link).to.equal('https://www.ptt.cc/bbs/Beauty/M.1502034628.A.9D5.html');
-		});
-	});	
+  describe('list-handler.getList(): Get list from html', function(){
+    let sample = null;
+    before(function(){
+      sample = fs.readFileSync('./test/sample-list.html', 'utf8');
+    });
+
+    it('should return expected list length', function(){
+      const list = handler.getList(sample);
+      expect(list.length).to.equal(9);
+    }); 
+
+    it('should have expected result loaded from sample-list.html', async function(){
+      const list = handler.getList(sample);
+      expect(list[3].author).to.equal('bbac99119');
+      expect(list[3].title).to.equal('[神人] 光陽showgirl');
+      expect(list[3].postId).to.equal('M.1502034628.A.9D5');
+      expect(list[3].link).to.equal('https://www.ptt.cc/bbs/Beauty/M.1502034628.A.9D5.html');
+    });
+  });	
 });
 
 

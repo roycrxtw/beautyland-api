@@ -154,14 +154,15 @@ function getPostId(url){
 
 
 /**
- * Get all post summary from a PTT html content.
+ * Build a list of post summary(post author, post id, link and title) 
+ * from a PTT html content.
  * @param {string} htmlContent PTT html content
- * @return {array} An array of post summary
+ * @return {array} A list of post summary
  */
 function getList(htmlContent){
 	let $ = cheerio.load(htmlContent);
-	let list = [];
-	let author = '', path = '';
+  let list = [];
+  
 	$('.r-ent').each(function(index, value) {
 		let postSummary = {};
 
@@ -169,15 +170,17 @@ function getList(htmlContent){
 		if(path){
 			postSummary.link = BASE_URL + path;
 		}else{
-			return true;
+			return;
 		}
 
-		postSummary.author = $(this).find('.author').text();
+    postSummary.author = $(this).find('.author').text();
+    
 		let temp = $(this).find('.title').text();
-		postSummary.title = temp.replace(/[\t\n\r]/g, '');
-		if(postSummary.title.match(/^\[公告\].*$/)){  // exclude '公告'
-			return true;
-		}
+		postSummary.title = temp.trim().replace(/[\t\n\r]/g, '');
+		if(postSummary.title.match(/^\[(公告|帥哥)\].*$/)){  // exclude '公告' and'帥哥'
+			return;
+    }
+    
 		postSummary.postId = getPostId(path);
 
 		list.push(postSummary);
