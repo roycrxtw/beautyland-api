@@ -2,12 +2,9 @@
 /**
  * Project Beautyland API
  * Entry point
- * @author Roy Lu
+ * @author Roy Lu(royvbtw)
  */
 
-'use strict';
-
-var debug = require('debug')('app');
 var express = require('express');
 var app = express();
 var bodyParser = require('body-parser');
@@ -24,7 +21,7 @@ if(config.env === 'production'){
     {level: 'error', path: 'log/error.log'}
   ];
 }else{
-	logSettings = [{level: 'debug', stream: process.stdout}];
+  logSettings = [{level: 'debug', stream: process.stdout}];
 }
 
 var log = require('bunyan').createLogger({
@@ -39,17 +36,17 @@ var cors = require('cors');
 app.use(cors());
 
 (async function init(){
-	try{
-		log.info('App started.');
-		let dbService = await DatabaseService();	// init for DatabaseService
-		
-		app.use(bodyParser.urlencoded({extended: true}));
-		app.use(require('./routers'));
-		
-		app.listen(PORT, function(){
-			log.info(`Beautyland is listening on ${PORT}`);
-		});
-	}catch(ex){
-		log.error({args: arguments, ex: ex.stack}, 'Error in index.init()');
-	}
+  try{
+    log.info('App started.');
+    await DatabaseService();	// init for DatabaseService
+    
+    app.use(bodyParser.urlencoded({extended: true}));
+    app.use(require('./routers'));
+    
+    app.listen(PORT, function(){
+      log.info(`Beautyland-API is listening on ${PORT}`);
+    });
+  }catch(ex){
+    log.error({args: arguments, ex: ex.stack}, 'Error in index.init()');
+  }
 })();

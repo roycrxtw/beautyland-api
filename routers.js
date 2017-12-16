@@ -2,14 +2,11 @@
 /**
  * Beautyland project
  * Routers
- * @author Roy Lu
+ * @author Roy Lu(royvbtw)
  */
-
-'use strict';
 
 var express = require('express');
 var router = express.Router();
-var debug = require('debug')('routers');
 
 const config = require('./config/main.config');
 var service = require('./main-service');
@@ -54,13 +51,13 @@ router.get(['/readme'], function(req, res, next){
 
 
 router.get('/info', function(req, res, next){
-	res.json({message: 'Beautyland API, author: Roy Lu. Sep 2017. #0717'});
+	res.json({message: 'Beautyland API, author: Roy Lu. Nov 2017. #0751'});
 });
 
 
 router.get(['/', '/latest/:page?'], async function(req, res, next){
 	try{
-	  const page = (req.params.page)? parseInt(req.params.page): 1;
+	  const page = (req.params.page)? parseInt(req.params.page, 10): 1;
 	  const posts = await service.getIndexPage(page);
 	  return res.json(posts);
 	}catch(ex){
@@ -72,7 +69,7 @@ router.get(['/', '/latest/:page?'], async function(req, res, next){
 
 router.get(['/trends/:page?', '/trends/monthly/:page?'], async (req, res, next) => {
   try{
-	  const page = (req.params.page)? parseInt(req.params.page): 1;
+	  const page = (req.params.page)? parseInt(req.params.page, 10): 1;
 	  const posts = await service.getMonthlyTrendsPage(page);
 	  return res.json(posts);
   }catch(ex){
@@ -84,7 +81,7 @@ router.get(['/trends/:page?', '/trends/monthly/:page?'], async (req, res, next) 
 
 router.get('/trends/weekly/:page?', async function(req, res, next){
   try{
-	  const page = (req.params.page)? parseInt(req.params.page): 1;
+	  const page = (req.params.page)? parseInt(req.params.page, 10): 1;
 	  const posts = await service.getWeeklyTrendsPage(page);
 	  return res.json(posts);
   }catch(ex){
@@ -98,36 +95,41 @@ router.get('/trends/weekly/:page?', async function(req, res, next){
  * Get the post data for the given post id.
  */
 router.get('/post/:postId', async (req, res, next) => {
-	try{
-		const postId = req.params.postId;
-		log.info(`get>/post/${postId}`);
+  try{
+    const postId = req.params.postId;
+    log.info(`get>/post/${postId}`);
 
-		// call the main service to handler this request.
-		// It will return an empty object {} when the post doesn't exist.
-		const post = await service.getPost(postId);
-		return res.json(post);
-	}catch(ex){
-		log.error({postId: req.params.postId, ex: ex.stack}, 'Error in routers.get>/post/:postId');
-		return res.sendStatus(500);
-	}
+    // call the main service to handler this request.
+    // It will return an empty object {} when the post doesn't exist.
+    const post = await service.getPost(postId);
+    if(post){
+      return res.json(post);
+    }else{
+      return res.status(404).json({message: 'No any result.'});
+    }
+  }catch(ex){
+    log.error({postId: req.params.postId, ex: ex.stack}, 'Error in routers.get>/post/:postId');
+    return res.sendStatus(500);
+  }
 });
+
 
 /**
  * Update post view count for the specified post when recevied put request.
  */
 router.put('/post/:postId', async function(req, res, next){
-	try{
-		const postId = req.params.postId;
-		const flag = await service.updatePostViewCount(postId);
-		if(flag){
-			return res.status(200).send('ViewCount updating ok.');
-		}else{
-			return res.sendStatus(400);
-		}
-	}catch(ex){
-		log.error({postId: req.params.postId, ex: ex.stack}, 'Error in routers.put>post/:postId');
-		return res.sendStatus(500);
-	}
+  try{
+    const postId = req.params.postId;
+    const flag = await service.updatePostViewCount(postId);
+    if(flag){
+      return res.status(200).send('ViewCount updating ok.');
+    }else{
+      return res.sendStatus(400);
+    }
+  }catch(ex){
+    log.error({postId: req.params.postId, ex: ex.stack}, 'Error in routers.put>post/:postId');
+    return res.sendStatus(500);
+  }
 });
 
 
@@ -135,33 +137,33 @@ router.put('/post/:postId', async function(req, res, next){
  * Build posts from Beauty board with the given page index.
  */
 router.post('/build', async (req, res, next) => {
-	try{
-		const pageIndex = parseInt(req.body.pageIndex);
-		const flag = await service.buildPosts(pageIndex);
-		if(flag){
-			return res.status(200).send('Build request ok.');
-		}else{
-			return res.sendStatus(400);
-		}
-	}catch(ex){
-		log.error({pageIndex: parseInt(req.body.pageIndex), ex: ex.stack}, 'Error in routers.post>/build');
-		return res.sendStatus(500);
-	}
+  try{
+    const pageIndex = parseInt(req.body.pageIndex, 10);
+    const flag = await service.buildPosts(pageIndex);
+    if(flag){
+      return res.status(200).send('Build request ok.');
+    }else{
+      return res.sendStatus(400);
+    }
+  }catch(ex){
+    log.error({pageIndex: parseInt(req.body.pageIndex, 10), ex: ex.stack}, 'Error in routers.post>/build');
+    return res.sendStatus(500);
+  }
 });
 
 
 // handle 404 issues
 router.use(function(req, res, next){
-	//res.sendStatus(404);
-	res.send('What do you look for?');
+  //res.sendStatus(404);
+  res.send('What do you look for?');
 });
 
 // Error handler middleware
 router.use(function(err, req, res, next){
-	log.error('Error happened in routers');
-	log.error('Error: ', err);
-	res.send("很抱歉，暫時無法提供此服務，請稍後再試。" 
-			+ "The service is currently not available. Please try it later.");
+  log.error('Error happened in routers');
+  log.error('Error: ', err);
+  res.send("很抱歉，暫時無法提供此服務，請稍後再試。" 
+      + "The service is currently not available. Please try it later.");
 });
 
 module.exports = router;

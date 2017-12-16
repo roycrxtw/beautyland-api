@@ -1,5 +1,5 @@
 
-'use strict';
+/* eslint no-unused-expressions: "off" */
 
 var expect = require('chai').expect;	
 var fs = require('fs');

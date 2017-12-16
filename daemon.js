@@ -5,11 +5,6 @@
  * daemon service: This daemon service is responsible for fetch data from PTT Beauty board.
  */
 
-
-'use strict';
-
-var debug = require('debug')('daemon');
-
 var util = require('./util');
 var listHandler = require('./list-handler');
 var DatabaseService = require('./database-service');

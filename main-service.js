@@ -6,12 +6,6 @@
  * Sep 2017
  */
 
-'use strict';
-
-var debug = require('debug')('main');
-var request = require('request');
-var cheerio = require('cheerio');
-
 var preloadList = require('./preload-list');
 var dbService = require('./database-service').getInstance('main-service');
 //var dbService = require('./database-service')();
@@ -68,8 +62,8 @@ var daemon = null;
 async function getIndexPage(page = 1){
 	try{
 		log.info(`getIndexPage() started. page=${page}`);
-		page = parseInt(page);
-		page = (page < 0 || page === NaN)? 1: page;
+		page = parseInt(page, 10);
+		page = (page < 0 || isNaN(page))? 1: page;
 
 		if(page <= 2){		// preloadList is a cached post list.
 			return preloadList.getList(page).posts;
@@ -87,7 +81,7 @@ async function getIndexPage(page = 1){
 /**
  * Get the post data from database
  * @param {string} postId The post id
- * @return {object} The post data or an empty object if the post doesn't exist.
+ * @return {post object|null} The post data or null if the post doesn't exist.
  */
 async function getPost(postId){
 	try{
@@ -133,10 +127,10 @@ async function getWeeklyTrendsPage(page = 1){
  */
 async function getTrendsPage({range = 1, page = 1} = {}){	
 	// secure data
-	range = parseInt(range);
-	range = (range < 0 || range === NaN)? 7: range;
-	page = parseInt(page);
-	page = (page < 0 || page === NaN)? 1: page;
+	range = parseInt(range, 10);
+	range = (range < 0 || isNaN(range))? 7: range;
+	page = parseInt(page, 10);
+	page = (page < 0 || isNaN(page))? 1: page;
 
 	try{
 		const timeOffset = new Date().setDate(new Date().getDate() - range);
@@ -160,7 +154,7 @@ async function getTrendsPage({range = 1, page = 1} = {}){
  */
 async function updatePreloadList(){
 	try{
-		let preloadListSize = parseInt(config.preloadSize);
+		let preloadListSize = parseInt(config.preloadSize, 10);
 		let posts = await dbService.readPosts({size: preloadListSize, skip: 0});
 		preloadList.update(posts);
 	}catch(ex){

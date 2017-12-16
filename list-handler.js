@@ -6,10 +6,6 @@
  * Sep 2017
  */
 
-'use strict';
-
-var debug = require('debug')('list-handler');
-var request = require('request');
 var cheerio = require('cheerio');
 
 const config = require('./config/main.config');
@@ -31,7 +27,7 @@ var log = require('bunyan').createLogger({
 });
 
 const BASE_URL = 'https://www.ptt.cc';
-const patternImgurId = /(?:http|https):\/\/.*?imgur\.com\/([^ .\n/]+)/;
+const imgurIdPattern = /(?:http|https):\/\/.*?imgur\.com\/([^ .\n/]+)/;
 const imgurUrlPattern = /(?:http|https):\/\/.*?imgur\.com\/([^ \n?/]+)/g;
 
 module.exports.generatePost = generatePost;
@@ -59,16 +55,14 @@ function formatImgurUrl(url){
 
 /**
  * Get imgur image ID
- * @param {string} url An imgur url
- * @return {string} The matched imgur id, or **nomatch** if the url is imgur 
+ * @param {string} imgurURL An imgur url
+ * @return {string|false} The matched imgur id, or **false** if the url is imgur 
  * album, imgur gallery or any other invalid url.
  */
-function getImgurId(url){
-	const match = url.match(patternImgurId);
-	if(!match){
-		return 'nomatch';
-	}else if(match[1] === 'a' || match[1] === 'gallery'){
-		return 'nomatch';
+function getImgurId(imgurURL){
+	const match = imgurURL.match(imgurIdPattern);
+	if(!match || match[1] === 'a' || match[1] === 'gallery'){
+		return false;
 	}else{
 		return match[1];
 	}

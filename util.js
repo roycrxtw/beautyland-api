@@ -5,10 +5,6 @@
  * Sep, 2017
  */
 
-
-'use strict';
-
-var debug = require('debug')('util');
 var cheerio = require('cheerio');
 var request = require('request');
 var requestImageSize = require('request-image-size');

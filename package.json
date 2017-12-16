@@ -4,8 +4,9 @@
   "description": "The data service api for Beautyland project.",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon index.js",
-    "test": "./node_modules/.bin/mocha -c"
+    "lint": "./node_modules/.bin/eslint . --ext .js",
+    "start": "npm run lint && nodemon --use-strict ./index.js",
+    "test": "npm run lint && \"./node_modules/.bin/mocha\" -c"
   },
   "author": "Roy Lu (royvbtw)",
   "license": "MIT",
@@ -20,8 +21,18 @@
     "request-image-size": "^2.0.0"
   },
   "devDependencies": {
+    "babel-eslint": "^7.2.3",
     "chai": "^4.1.2",
     "debug": "^2.6.9",
+    "eslint": "^4.12.0",
+    "eslint-config-react-app": "^2.0.1",
+    "eslint-plugin-flowtype": "^2.39.1",
+    "eslint-plugin-import": "^2.8.0",
+    "eslint-plugin-jsx-a11y": "^5.1.1",
+    "eslint-plugin-node": "^5.2.1",
+    "eslint-plugin-promise": "^3.6.0",
+    "eslint-plugin-react": "^7.5.1",
+    "eslint-plugin-standard": "^3.0.1",
     "mocha": "^3.5.3",
     "nodemon": "^1.12.1"
   },

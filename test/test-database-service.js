@@ -1,5 +1,5 @@
 
-'use strict';
+/* eslint no-unused-expressions: "off" */
 
 var expect = require('chai').expect;	
 
@@ -123,7 +123,7 @@ describe('Testing for database-service', function(){
 				postDate: '8/07',
 				link: 'https://www.ptt.cc/bbs/Beauty/test.id.roy.html',
 				viewCount: 21,
-				createdAt: new Date,
+				createdAt: new Date(),
 				imgUrls: ['http://i.imgur.com/G8mgxvB.jpg', 'http://i.imgur.com/aQOUYt3.jpg']
 			};
 			let result = await dbService.savePost(preparedPost, 'test');

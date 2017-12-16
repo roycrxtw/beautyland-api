@@ -6,8 +6,6 @@
  * Sep, 2017
  */
 
-'use strict';
-
 const config = require('./config/main.config');
 const PAGE_SIZE = config.defaultPageSize;
 

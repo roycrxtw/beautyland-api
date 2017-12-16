@@ -5,11 +5,6 @@
  * @author Roy Lu
  */
 
-
-'use strict';
-
-var debug = require('debug')('db');
-
 var MongoClient = require('mongodb').MongoClient;
 
 const config = require('./config/main.config');
@@ -104,26 +99,26 @@ class DatabaseService{
 	 * Read post from database.
 	 * @param {string} postId The post id
 	 * @param {string} collectionName The collection name
-	 * @return {object} The found post, or an empty object if there is no result for the specified postId.
+	 * @return {post|null} The found post, or null if there is no result for the specified postId.
 	 */
-	readPost(postId, collectionName = 'posts'){
-		return new Promise( (resolve, reject) => {
-			if(!this.conn){
-				return reject('Database connection does not exist.');
-			}
-			this.conn.collection(collectionName).findOne({postId: postId}, {fields: {_id: 0}}, 
-					function(err, doc){
-				if(err){
-					return reject(err);
-				}
-				if(doc){	// found a post
-					return resolve(doc);
-				}else{		// Doesn't find a post
-					return resolve({});
-				}
-			});
-		});
-	}
+  readPost(postId, collectionName = 'posts'){
+    return new Promise( (resolve, reject) => {
+      if(!this.conn){
+        return reject('Database connection does not exist.');
+      }
+      this.conn.collection(collectionName).findOne({postId: postId}, {fields: {_id: 0}}, 
+          function(err, doc){
+        if(err){
+          return reject(err);
+        }
+        if(doc){	// found a post
+          return resolve(doc);
+        }else{		// no any post, resolve null
+          return resolve(null);
+        }
+      });
+    });
+  }
 
 
 	readPosts({query = {}, order = {createdAt: -1}, size = 10, skip = 0, collectionName = 'posts'} = {}){		
@@ -137,10 +132,8 @@ class DatabaseService{
 					return reject(err);
 				}
 				if(docs){
-					debug('Found %s docs.', docs.length);
 					return resolve(docs);
 				}else{
-					debug('No results.');
 					return resolve({message: 'No results.'});
 				}
 			});
@@ -202,9 +195,9 @@ module.exports = async function(url){
 };
 
 module.exports.getInstance = function(source){
-	if(instance){
-		return instance;
-	}else{
-		throw new Error('Database service instance doesn\'t exist.');
-	}
+  if(instance){
+    return instance;
+  }else{
+    throw new Error('Database service instance doesn\'t exist.');
+  }
 }

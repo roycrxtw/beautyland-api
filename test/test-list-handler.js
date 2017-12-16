@@ -5,7 +5,7 @@
  * @author Roy Lu(royvbtw) Sep 2017
  */
 
-'use strict';
+/* eslint no-unused-expressions: "off" */
 
 var expect = require('chai').expect;	
 
@@ -13,13 +13,13 @@ var handler = require('../list-handler.js');
 var fs = require('fs');
 
 const testUrls = [
-	{url: 'http://imgur.com/70KeHU5', id: '70KeHU5'},
-	{url: 'http://m.imgur.com/70KeHU5', id: '70KeHU5'},
-	{url: 'http://i.imgur.com/70KeHU5', id: '70KeHU5'},
-	{url: 'http://i.imgur.com/13wpSFj.jpg', id: '13wpSFj'},
-	{url: 'http://imgur.com/a/Qai8x', id: 'nomatch'},
-	{url: 'http://imgur.com/gallery/VCDXO', id: 'nomatch'},
-	{url: 'https://royvbtw.uk/cats.jpg', id: 'nomatch'}
+	{url: 'http://imgur.com/70KeHU5', result: '70KeHU5'},
+	{url: 'http://m.imgur.com/70KeHU5', result: '70KeHU5'},
+	{url: 'http://i.imgur.com/70KeHU5', result: '70KeHU5'},
+	{url: 'http://i.imgur.com/13wpSFj.jpg', result: '13wpSFj'},
+	{url: 'http://imgur.com/a/Qai8x', result: false},
+	{url: 'http://imgur.com/gallery/VCDXO', result: false},
+	{url: 'https://royvbtw.uk/cats.jpg', result: false}
 ];
 
 describe('Test for list-handler', function(){	
@@ -28,8 +28,8 @@ describe('Test for list-handler', function(){
 			let imgurId = '';
 			testUrls.forEach( elem => {
 				imgurId = handler.getImgurId(elem.url);
-				expect(imgurId).to.equal(elem.id);
-			}, this);
+				expect(imgurId).to.equal(elem.result);
+			});
 		});
 	});
 
