@@ -155,8 +155,12 @@ async function getTrendsPage({range = 1, page = 1} = {}){
 async function updatePreloadList(){
 	try{
 		let preloadListSize = parseInt(config.preloadSize, 10);
-		let posts = await dbService.readPosts({size: preloadListSize, skip: 0});
-		preloadList.update(posts);
+    let posts = await dbService.readPosts({size: preloadListSize, skip: 0});
+    if(posts){
+      preloadList.update(posts);
+    }else{
+      throw new Error(`Error in updatePreloadList. It should contain certain results.`);
+    }
 	}catch(ex){
 		log.error({ex: ex.stack}, 'Error in main-service.updatePreloadList()');
 	}

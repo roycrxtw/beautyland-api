@@ -58,8 +58,12 @@ router.get('/info', function(req, res, next){
 router.get(['/', '/latest/:page?'], async function(req, res, next){
 	try{
 	  const page = (req.params.page)? parseInt(req.params.page, 10): 1;
-	  const posts = await service.getIndexPage(page);
-	  return res.json(posts);
+    const posts = await service.getIndexPage(page);
+    if(posts){
+      return res.json(posts);
+    }else{
+      return res.json({message: 'There is no any result.'});
+    }
 	}catch(ex){
     log.error({page: req.params.page, ex: ex.stack}, 'Error in routers.get>latest');
     return res.sendStatus(500);
@@ -71,7 +75,11 @@ router.get(['/trends/:page?', '/trends/monthly/:page?'], async (req, res, next) 
   try{
 	  const page = (req.params.page)? parseInt(req.params.page, 10): 1;
 	  const posts = await service.getMonthlyTrendsPage(page);
-	  return res.json(posts);
+	  if(posts){
+      return res.json(posts);
+    }else{
+      return res.json({message: 'There is no any result.'});
+    }
   }catch(ex){
 	  log.error({page: req.params.page, ex: ex.stack}, 'Error in routers.get>/trends/monthly');
 	  return res.sendStatus(500);
@@ -83,7 +91,11 @@ router.get('/trends/weekly/:page?', async function(req, res, next){
   try{
 	  const page = (req.params.page)? parseInt(req.params.page, 10): 1;
 	  const posts = await service.getWeeklyTrendsPage(page);
-	  return res.json(posts);
+	  if(posts){
+      return res.json(posts);
+    }else{
+      return res.json({message: 'There is no any result.'});
+    }
   }catch(ex){
 	  log.error({page: req.params.page, ex: ex.stack}, 'Error in routers.get>/trends/weekly');
 	  return res.sendStatus(500);

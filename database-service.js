@@ -121,24 +121,24 @@ class DatabaseService{
   }
 
 
-	readPosts({query = {}, order = {createdAt: -1}, size = 10, skip = 0, collectionName = 'posts'} = {}){		
-		return new Promise( (resolve, reject) => {
-			if(!this.conn){
-				return reject('Database connection does not exist.');
-			}
-			this.conn.collection(collectionName).find(query).sort(order)
-					.skip(skip).limit(size).project({_id: 0}).toArray(function(err, docs){
-				if(err){
-					return reject(err);
-				}
-				if(docs){
-					return resolve(docs);
-				}else{
-					return resolve({message: 'No results.'});
-				}
-			});
-		});
-	}
+  readPosts({query = {}, order = {createdAt: -1}, size = 10, skip = 0, collectionName = 'posts'} = {}){		
+    return new Promise( (resolve, reject) => {
+      if(!this.conn){
+        return reject('Database connection does not exist.');
+      }
+      this.conn.collection(collectionName).find(query).sort(order)
+          .skip(skip).limit(size).project({_id: 0}).toArray(function(err, docs){
+        if(err){
+          return reject(err);
+        }
+        if(docs.length > 0){
+          return resolve(docs);
+        }else{    // no any result, resolve null
+          return resolve(null);
+        }
+      });
+    });
+  }
 
 
 	deletePost(postId, collectionName = 'posts'){

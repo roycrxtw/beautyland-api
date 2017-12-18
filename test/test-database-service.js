@@ -141,24 +141,32 @@ describe('Testing for database-service', function(){
 			expect(post.images).to.deep.equal(preparedPosts[1].images);
 		});
 
-		it('should return an empty object if the post does not exist', async () => {
+		it('should return null if the post does not exist', async () => {
 			const post = await dbService.readPost('test.id.ghost', 'test');
-			expect(post).to.be.empty;
+			expect(post).to.be.null;
 		});
 	});
 
 
-	describe('database-service.readPosts(query, opts): Read posts from database', function(){
-		it('should return 2 post documents.', async () => {
-			let timeFrom = new Date('2017-08-06T00:00:00.000Z');
-			let timeTo = new Date('2017-08-07T00:00:00.000Z');
-			let posts = await dbService.readPosts({
-				query: {createdAt: {$gte: timeFrom, $lt: timeTo}},
-				collectionName: 'test'
-			});
-			expect(posts.length).to.equal(2);
-		});
-	});
+  describe('database-service.readPosts(query, opts): Read posts from database', function(){
+    it('should return null if there is no any result.', async () => {
+      let posts = await dbService.readPosts({
+        query: {author: 'nobody'}, collectionName: 'test'
+      });
+      console.log(`post=`, posts);
+      expect(posts).to.be.null;
+    });
+
+    it('should return 2 post documents.', async () => {
+      let timeFrom = new Date('2017-08-06T00:00:00.000Z');
+      let timeTo = new Date('2017-08-07T00:00:00.000Z');
+      let posts = await dbService.readPosts({
+        query: {createdAt: {$gte: timeFrom, $lt: timeTo}},
+        collectionName: 'test'
+      });
+      expect(posts.length).to.equal(2);
+    });
+  });
 
 
 	describe('database-service.deletePost(postId): Delete post from database', function(){
