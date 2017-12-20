@@ -140,6 +140,23 @@ class DatabaseService{
     });
   }
 
+  readRandomPosts({size = 20, collectionName = 'posts'} = {}){
+    return new Promise( async (resolve, reject) => {
+      if(!this.conn){
+        return reject('Database connection does not exist.');
+      }
+
+			try{
+				const docs = await this.conn.collection(collectionName).aggregate([{
+					$sample: {size}
+				}]).toArray();
+				return resolve(docs);
+			}catch(ex){
+				return reject(ex);
+			}
+    });
+  }
+
 
 	deletePost(postId, collectionName = 'posts'){
 		return new Promise( (resolve, reject) => {

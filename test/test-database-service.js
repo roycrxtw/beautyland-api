@@ -6,8 +6,8 @@ var expect = require('chai').expect;
 var DatabaseService = require('../database-service');
 var MongoClient = require('mongodb').MongoClient;
 var connectionOptions = {
-	keepAlive: 300000,
-	connectTimeoutMS: 50000
+  keepAlive: 300000,
+  connectTimeoutMS: 50000
 }; 
 
 // Use a local mongodb to test the database-service.js
@@ -17,16 +17,16 @@ var testCollection = null;
 let dbService = null;
 
 let preparedPosts = [{
-	author: 'Karl',
-	postId: 'test.id.karl',
-	title: '[dis] 2 types of question mark',
-	link: 'https://www.ptt.cc/bbs/Beauty/test.id.karl.html',
-	viewCount: 123,
-	createdAt: new Date('2017-08-06T13:24:26.000Z'),
-	images: [
-		{url: 'http://i.imgur.com/G8mgxvB.jpg', width: 521, height: 534},
-		{url: 'http://i.imgur.com/aQOUYt3.jpg', width: 250, height: 250}
-	]
+  author: 'Karl',
+  postId: 'test.id.karl',
+  title: '[dis] 2 types of question mark',
+  link: 'https://www.ptt.cc/bbs/Beauty/test.id.karl.html',
+  viewCount: 123,
+  createdAt: new Date('2017-08-06T13:24:26.000Z'),
+  images: [
+    {url: 'http://i.imgur.com/G8mgxvB.jpg', width: 521, height: 534},
+    {url: 'http://i.imgur.com/aQOUYt3.jpg', width: 250, height: 250}
+  ]
 }, {
 	author: 'Teemo',
 	postId: 'test.id.teemo',
@@ -153,7 +153,6 @@ describe('Testing for database-service', function(){
       let posts = await dbService.readPosts({
         query: {author: 'nobody'}, collectionName: 'test'
       });
-      console.log(`post=`, posts);
       expect(posts).to.be.null;
     });
 
@@ -165,6 +164,14 @@ describe('Testing for database-service', function(){
         collectionName: 'test'
       });
       expect(posts.length).to.equal(2);
+    });
+  });
+
+  describe('database-service.readRandomPosts(): Read random posts from database', function(){
+    it('should return a random result', async () => {
+      const posts = await dbService.readRandomPosts({size: 2, collectionName: 'test'});
+      expect(posts.length).to.equal(2);
+      console.log(posts);
     });
   });
 

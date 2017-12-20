@@ -6,7 +6,8 @@
   "scripts": {
     "lint": "./node_modules/.bin/eslint . --ext .js",
     "start": "npm run lint && nodemon --use-strict ./index.js",
-    "test": "npm run lint && \"./node_modules/.bin/mocha\" -c"
+    "test": "npm run lint && \"./node_modules/.bin/mocha\" -c",
+    "testonly": "./node_modules/.bin/mocha -c"
   },
   "author": "Roy Lu (royvbtw)",
   "license": "MIT",

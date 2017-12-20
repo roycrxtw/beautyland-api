@@ -146,6 +146,17 @@ async function getTrendsPage({range = 1, page = 1} = {}){
 	}
 }
 
+async function getRandomPosts(size){
+  try{
+    const posts = await dbService.readRandomPosts({
+      size
+    });
+    return posts;
+  }catch(ex){
+    log.error({args: arguments, ex: ex.stack}, 'Error in main-service.getRandomPosts()');
+  }
+}
+
 
 /**
  * Update the preload list.
@@ -200,5 +211,6 @@ module.exports.getPost = getPost;
 module.exports.getTrendsPage = getTrendsPage;
 module.exports.getWeeklyTrendsPage = getWeeklyTrendsPage;
 module.exports.getMonthlyTrendsPage = getMonthlyTrendsPage;
+module.exports.getRandomPosts = getRandomPosts;
 module.exports.updatePostViewCount = updatePostViewCount;
 module.exports.buildPosts = buildPosts;

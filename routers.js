@@ -102,6 +102,20 @@ router.get('/trends/weekly/:page?', async function(req, res, next){
   }
 });
 
+router.get('/samples', async (req, res, next) => {
+  try{
+    const posts = await service.getRandomPosts(20);
+    if(posts && posts.length > 0){
+      return res.json(posts);
+    }else{
+      return res.json({message: 'There is no any result'});
+    }
+  }catch(ex){
+    log.error({page: req.params.page, ex: ex.stack}, 'Error in routers.get>/samples');
+	  return res.sendStatus(500);
+  }
+});
+
 
 /**
  * Get the post data for the given post id.
