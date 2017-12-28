@@ -181,7 +181,7 @@ router.post('/build', async (req, res, next) => {
 // handle 404 issues
 router.use(function(req, res, next){
   //res.sendStatus(404);
-  res.send('What do you look for?');
+  res.status(404).send('What do you look for?');
 });
 
 // Error handler middleware
