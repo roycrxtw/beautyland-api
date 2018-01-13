@@ -12,6 +12,11 @@ Or you can get the most popular posts in a week by send this get request:
 https://beautyland-api.royvbtw.uk/trends
 ```
 
+You can also use /samples end point for a random post results:
+```
+https://beautyland-api.royvbtw.uk/samples
+```
+
 ## The data format
 The returned data will be formatted in JSON.
 ```
@@ -20,7 +25,7 @@ The returned data will be formatted in JSON.
   author,
   title,
   postId,
-  images, // it contains image url, width and height data.
+  images, // array data. It contains image url, width and height data.
   viewCount,
   createdAt
 }
