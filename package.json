@@ -6,8 +6,8 @@
   "scripts": {
     "lint": "./node_modules/.bin/eslint . --ext .js",
     "start": "npm run lint && nodemon --use-strict ./index.js",
-    "test": "npm run lint && \"./node_modules/.bin/mocha\" -c",
-    "testonly": "./node_modules/.bin/mocha -c"
+    "test": "npm run lint && jest --colors --watchAll",
+    "testonly": "jest --colors --watchAll"
   },
   "author": "Roy Lu (royvbtw)",
   "license": "MIT",
@@ -17,13 +17,13 @@
     "cheerio": "^1.0.0-rc.2",
     "cors": "^2.8.4",
     "express": "^4.15.4",
+    "jest": "^22.0.6",
     "mongodb": "^2.2.31",
     "request": "^2.82.0",
     "request-image-size": "^2.0.0"
   },
   "devDependencies": {
     "babel-eslint": "^7.2.3",
-    "chai": "^4.1.2",
     "debug": "^2.6.9",
     "eslint": "^4.12.0",
     "eslint-config-react-app": "^2.0.1",
@@ -34,8 +34,8 @@
     "eslint-plugin-promise": "^3.6.0",
     "eslint-plugin-react": "^7.5.1",
     "eslint-plugin-standard": "^3.0.1",
-    "mocha": "^3.5.3",
-    "nodemon": "^1.12.1"
+    "nodemon": "^1.12.1",
+    "supertest": "^3.0.0"
   },
   "repository": {
     "type": "git",

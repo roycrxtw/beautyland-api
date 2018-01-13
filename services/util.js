@@ -10,24 +10,28 @@ var request = require('request');
 var requestImageSize = require('request-image-size');
 
 var log = require('bunyan').createLogger({
-	name: 'util',
-	streams: [
+  name: 'util',
+  streams: [
     {level: 'error', path: 'log/error.log'}
   ]
 });
 
-module.exports.loadHtml = loadHtml;
+module.exports.fetchHtml = fetchHtml;
 module.exports.htmlToText = htmlToText;
 module.exports.getImageSize = getImageSize;
 
 
 /**
- * Get target html content for the specified url
+ * Get target html content for the given url
  * @param {string} url The target url which will be processed.
  * @return {Promise} Resolve if status code is 200 and the length of html content > 0.
  */
-function loadHtml(url){
-	return new Promise( (resolve, reject) => {
+function fetchHtml(url){
+  return new Promise( (resolve, reject) => {
+    if(!url){
+      return reject({ error: 'Error: The url is invalid.' });
+    }
+
 		request(url, function(err, response, body){
 			if(err){
 				return reject({error: err, url: url});
@@ -37,7 +41,7 @@ function loadHtml(url){
 				return resolve({statusCode: statusCode, body: body});
 			}else if(response && statusCode === 200 && body.length === 0){
 				return reject({
-					message: 'Content length is 0 after loadHtml(). Please check.', 
+					message: 'Content length is 0 after fetchHteml(). Please check.', 
 					statusCode: statusCode,
 					url: url
 				});
@@ -57,7 +61,7 @@ function loadHtml(url){
  * @param {string} html Plain text of html content.
  */
 function htmlToText(html){
-	if(html.length === 0){
+	if(!html){
 		return false;
 	}
 	let $ = cheerio.load(html);

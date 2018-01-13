@@ -6,14 +6,14 @@
  * Sep 2017
  */
 
-var cheerio = require('cheerio');
+const cheerio = require('cheerio');
 
-const config = require('./config/main.config');
-var util = require('./util');
+const config = require('../config/main.config');
+const util = require('./util');
 
 let logSettings = {};
 if(config.env === 'production'){
-	logSettings = [
+  logSettings = [
     {level: config.LOG_LEVEL, path: 'log/list-handler.log'}, 
     {level: 'error', path: 'log/error.log'}
   ];
@@ -21,9 +21,9 @@ if(config.env === 'production'){
   logSettings = [{level: 'debug', stream: process.stdout}];
 }
 
-var log = require('bunyan').createLogger({
-	name: 'list-handler',
-	streams: logSettings
+const log = require('bunyan').createLogger({
+  name: 'list-handler',
+  streams: logSettings
 });
 
 const BASE_URL = 'https://www.ptt.cc';
@@ -35,21 +35,21 @@ module.exports.getImgurId = getImgurId;
 module.exports.getImgurUrlsFromText = getImgurUrlsFromText;
 module.exports.getList = getList;
 module.exports.getPostId = getPostId;
+module.exports.formatImgurUrl = formatImgurUrl;
 
 
 /**
  * Format imgur url to a https direct link.
  * @param {string} url An imgur url
- * @return {string} Formatted imgur URL, or returns null if it is invalid imgur url.
+ * @return {string|null} Formatted imgur URL, or returns null if it is invalid imgur url.
  */
 function formatImgurUrl(url){
-	const imgurId = getImgurId(url);
-	if(imgurId === 'nomatch'){
-		return null;
-	}else{
-		const formattedImgurUrl = 'https://i.imgur.com/' + imgurId + '.jpg';
-		return formattedImgurUrl;
-	}
+  const imgurId = getImgurId(url);
+  if(!imgurId){
+    return null;
+  }else{
+    return 'https://i.imgur.com/' + imgurId + '.jpg';
+  }
 }
 
 
@@ -96,42 +96,45 @@ function getImgurUrlsFromText(text){
 /**
  * 
  * @param {string} postId 
- * @return {PreparedPost|false} Return false if no any image in the post.
+ * @return {PreparedPost|null} Return null if there is no any image in the post.
  */
 async function generatePost(postSummary){
 	try{
-		const html = (await util.loadHtml(postSummary.link)).body;
-	
+    const html = (await util.fetchHtml(postSummary.link)).body;
+    
 		const plainText = util.htmlToText(html);
 		const imgurUrls = getImgurUrlsFromText(plainText);
 		if(imgurUrls.length === 0){
-			return false;	// No any image exists. Return false.
+      return null;  //No any image exists. Return null.
 		}
 		
-		let imageList = [];
-		for(let i = 0; i < imgurUrls.length; i++){
-			let image = {};
+    let imageList = [];
+    for(let i = 0; i < imgurUrls.length; i++){
 			const formattedUrl = formatImgurUrl(imgurUrls[i]);
 			if(!formattedUrl){
 				continue;
-			}
+      }
+
+      let image = {};
 			image.url = formattedUrl;
 			const imageInfo = await util.getImageSize(image.url);
 			image.width = imageInfo.width;
 			image.height = imageInfo.height;
-			imageList.push( image );
-		}
+			imageList.push(image);
+    }
+    
 		if(imageList.length === 0){
-			return false;
+			return null;
 		}
 
-		let preparedPost = postSummary;
+		let preparedPost = {...postSummary};
 		preparedPost.images = imageList;
 		preparedPost.viewCount = 0;
 		preparedPost.createdAt = new Date();
 		return preparedPost;
 	}catch(ex){
-		log.error({args: arguments, ex: ex.stack}, 'Error in list-handler.generatePost()');
+    log.error({args: arguments, ex: ex.stack}, 'Error in list-handler.generatePost()');
+    return null;
 	}
 }
 

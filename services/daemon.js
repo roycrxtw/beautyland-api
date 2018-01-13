@@ -5,11 +5,13 @@
  * daemon service: This daemon service is responsible for fetch data from PTT Beauty board.
  */
 
-var util = require('./util');
-var listHandler = require('./list-handler');
-var DatabaseService = require('./database-service');
+const util = require('./util');
+const listHandler = require('./list-handler');
 
-const config = require('./config/main.config');
+const dbConfig = require('../config/db.config');
+const dbService = require('./database-service').init(dbConfig.mainDbUrl);
+
+const config = require('../config/main.config');
 const BOARD_URL = config.boardUrl;
 const PERIOD = config.fetchPeriod;
 
@@ -23,7 +25,7 @@ if(config.env === 'production'){
   logSettings = [{level: 'debug', stream: process.stdout}];
 }
 
-var log = require('bunyan').createLogger({
+const log = require('bunyan').createLogger({
   name: 'daemon',
   streams: logSettings
 });
@@ -31,7 +33,23 @@ var log = require('bunyan').createLogger({
 
 module.exports.buildPosts = buildPosts;
 
-let dbService = null;
+
+/**
+ * This will set up its own database service. It doesn't share db connection with main-process.
+ */
+(async function run(){
+  log.info('daemon.run() started.');
+  try{
+    await dbService.connect();
+
+    while(true){    // run forever
+      await buildPosts();
+      await sleep(PERIOD);
+    }
+  }catch(ex){
+    log.error({ex: ex.stack}, 'Error in daemon.run()');
+  }
+})();
 
 
 /**
@@ -40,10 +58,9 @@ let dbService = null;
  */
 async function buildPosts(url = BOARD_URL){
   try{
-    if(!dbService){
-      return false;
-    }
-    const pttContent = await util.loadHtml(url);
+    if(!dbService){ return false; }   // Do nothing if dbService does not set up
+
+    const pttContent = await util.fetchHtml(url);
 
     let list = listHandler.getList(pttContent.body);
 
@@ -62,28 +79,11 @@ async function buildPosts(url = BOARD_URL){
       }
     }
     // Send a command message to parent process(main-service) to update its preloadList
-    process.send({cmd: 'update-preloadList'});
+    //process.send({cmd: 'update-preloadList'});
   }catch(ex){
     log.error({ex: ex.stack}, 'Error in daemon.buildPosts()');
   }
 }
-
-
-/**
- * This will et up its own database service. It doesn't share db connection with main-process.
- */
-(async function run(){
-  log.info('daemon.run() started.');
-  try{
-    dbService = await DatabaseService();
-    while(true){    // run forever
-      await buildPosts();
-      await sleep(PERIOD);
-    }
-  }catch(ex){
-    log.error({ex: ex.stack}, 'Error in daemon.run()');
-  }
-})();
 
 
 function sleep(ms){

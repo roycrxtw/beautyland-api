@@ -6,7 +6,7 @@
  * Sep, 2017
  */
 
-const config = require('./config/main.config');
+const config = require('../config/main.config');
 const PAGE_SIZE = config.defaultPageSize;
 
 class PreloadList{

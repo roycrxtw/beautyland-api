@@ -5,48 +5,43 @@
  * @author Roy Lu(royvbtw)
  */
 
-var express = require('express');
-var app = express();
-var bodyParser = require('body-parser');
+const server = require('./server');
 
 const config = require('./config/main.config');
-var DatabaseService = require('./database-service');
-
 const PORT = config.port;
 
-let logSettings = {};
-if(config.env === 'production'){
-  logSettings = [
-    {level: config.LOG_LEVEL, path: 'log/index.log'}, 
-    {level: 'error', path: 'log/error.log'}
-  ];
-}else{
-  logSettings = [{level: 'debug', stream: process.stdout}];
-}
+let daemonService = null;
 
-var log = require('bunyan').createLogger({
-  name: 'accesslog',
+let logSettings = (config.env === 'production')? [
+  {level: config.LOG_LEVEL, path: 'log/db.log'}, 
+  {level: 'error', path: 'log/error.log'}
+]: [
+  {level: 'debug', stream: process.stdout},
+  {level: 'debug', path: 'log/dev-debug.log'},
+  {level: 'error', path: 'log/dev-error.log'},
+];
+const log = require('bunyan').createLogger({
+  name: 'index',
   streams: logSettings
 });
 
-app.use(express.static(__dirname + '/public'));
 
-// set up CORS middleware
-var cors = require('cors');
-app.use(cors());
-
-(async function init(){
+(async function callDaemon(){
   try{
-    log.info('App started.');
-    await DatabaseService();	// init for DatabaseService
-    
-    app.use(bodyParser.urlencoded({extended: true}));
-    app.use(require('./routers'));
-    
-    app.listen(PORT, function(){
-      log.info(`Beautyland-API is listening on ${PORT}`);
-    });
+    log.info('index.callDaemon() started.');
+    if(!daemonService){
+      log.info('index.callDaemon(): fork a daemon process.');
+      daemonService = require('child_process').fork(__dirname + '/services/daemon.js');
+      // daemonService.on('message', async function(m){
+      //   if(m.cmd === 'update-preloadList'){
+      //     updatePreloadList();
+      //   }
+      // });
+    }
   }catch(ex){
-    log.error({args: arguments, ex: ex.stack}, 'Error in index.init()');
+    log.error({ex: ex.stack}, 'Error in index.callDaemon()');
   }
 })();
+
+
+server(PORT);

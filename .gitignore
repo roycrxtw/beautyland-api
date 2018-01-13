@@ -1,4 +1,5 @@
 config/
+coverage/
 doc/
 log/
 temp/

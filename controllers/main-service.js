@@ -2,15 +2,16 @@
 /**
  * Project Beautyland
  * Main service
- * @author Roy Lu
+ * @author Roy Lu(royvbtw)
  * Sep 2017
  */
 
-var preloadList = require('./preload-list');
-var dbService = require('./database-service').getInstance('main-service');
-//var dbService = require('./database-service')();
+//var preloadList = require('./preload-list');
 
-const config = require('./config/main.config');
+const dbConfig = require('../config/db.config');
+const dbService = require('../services/database-service').init(dbConfig.mainDbUrl);
+
+const config = require('../config/main.config');
 const PAGE_SIZE = Number(config.defaultPageSize);
 
 let logSettings = {};
@@ -20,38 +21,25 @@ if(config.env === 'production'){
     {level: 'error', path: 'log/error.log'}
   ];
 }else{
-  logSettings = [{level: 'debug', stream: process.stdout}];
+  logSettings = [
+		{level: 'debug', stream: process.stdout},
+		{level: 'debug', path: 'log/debug.log'},
+		{level: 'error', path: 'log/error.log'}
+	];
 }
 
-var log = require('bunyan').createLogger({
+const log = require('bunyan').createLogger({
   name: 'accesslog',
   streams: logSettings
 });
 
-var daemon = null;
 
+let daemonService = null;
 
-(async function init(){
-  log.info('main-service.init() started');
-  await updatePreloadList();
-  log.info('main-service.init() end');
-})();
-
-
-(async function callDaemon(){
-	try{
-		log.info('main-service.callDaemon() started.');
-		if(!daemon){
-			daemon = require('child_process').fork(__dirname + '/daemon.js');
-			daemon.on('message', async function(m){
-				if(m.cmd === 'update-preloadList'){
-					updatePreloadList();
-				}
-			});
-		}
-	}catch(ex){
-		log.error({ex: ex.stack}, 'Error in main-service.callDaemon()');
-	}
+const init = (async ( {daemon} = {}) => {
+  await dbService.connect();
+  daemonService = daemon;
+  //await updatePreloadList();
 })();
 
 
@@ -60,18 +48,26 @@ var daemon = null;
  * @param {number} page page number
  */
 async function getIndexPage(page = 1){
-	try{
-		log.info(`getIndexPage() started. page=${page}`);
-		page = parseInt(page, 10);
-		page = (page < 0 || isNaN(page))? 1: page;
+  try{
+    if(!dbService){
+      throw new Error('dbService does not exist');
+    }
 
-		if(page <= 2){		// preloadList is a cached post list.
-			return preloadList.getList(page).posts;
-		}else{
-			const skip = (page - 1) * PAGE_SIZE;
-			const posts = await dbService.readPosts({skip: skip, size: PAGE_SIZE});
-			return posts;
-		}
+    log.info(`getIndexPage() started. page=${page}`);
+    page = parseInt(page, 10);
+    page = (page < 0 || isNaN(page))? 1: page;
+
+    const skip = (page - 1) * PAGE_SIZE;
+    const posts = await dbService.readPosts({skip: skip, size: PAGE_SIZE});
+    return posts;
+
+		// if(page <= 2){		// preloadList is a cached post list.
+		// 	return preloadList.getList(page).posts;
+		// }else{
+		// 	const skip = (page - 1) * PAGE_SIZE;
+		// 	const posts = await dbService.readPosts({skip: skip, size: PAGE_SIZE});
+		// 	return posts;
+		// }
 	}catch(ex){
 		log.error({args: arguments, ex: ex.stack}, 'Error in main-service.getIndexPage()');
 	}
@@ -85,6 +81,10 @@ async function getIndexPage(page = 1){
  */
 async function getPost(postId){
 	try{
+    if(!dbService){
+      throw new Error('dbService does not exist');
+    }
+    
 		const post = await dbService.readPost(postId);
 		return post;
 	}catch(ex){
@@ -158,24 +158,24 @@ async function getRandomPosts(size){
 }
 
 
-/**
- * Update the preload list.
- * This function will get posts from database and save to the preload list 
- * in order to accelerate page loading speed.
- */
-async function updatePreloadList(){
-	try{
-		let preloadListSize = parseInt(config.preloadSize, 10);
-    let posts = await dbService.readPosts({size: preloadListSize, skip: 0});
-    if(posts){
-      preloadList.update(posts);
-    }else{
-      throw new Error(`Error in updatePreloadList. It should contain certain results.`);
-    }
-	}catch(ex){
-		log.error({ex: ex.stack}, 'Error in main-service.updatePreloadList()');
-	}
-}
+// /**
+//  * Update the preload list.
+//  * This function will get posts from database and save to the preload list 
+//  * in order to accelerate page loading speed.
+//  */
+// async function updatePreloadList(){
+// 	try{
+// 		let preloadListSize = parseInt(config.preloadSize, 10);
+//     let posts = await dbService.readPosts({size: preloadListSize, skip: 0});
+//     if(posts){
+//       preloadList.update(posts);
+//     }else{
+//       throw new Error(`Error in updatePreloadList. It should contain certain results.`);
+//     }
+// 	}catch(ex){
+// 		log.error({ex: ex.stack}, 'Error in main-service.updatePreloadList()');
+// 	}
+// }
 
 
 /**
@@ -198,13 +198,15 @@ async function buildPosts(pageIndex){
 	}
 	try{
 		const url = 'https://www.ptt.cc/bbs/Beauty/index' + pageIndex + '.html';
-		daemon.send({cmd: 'buildPosts', url: url});
+		daemonService.send({cmd: 'buildPosts', url: url});
 		return true;
 	}catch(ex){
 		log.error({args: arguments, ex: ex.stack}, 'Error in main-service.buildPosts().');
 		return false;
 	}
 }
+
+module.exports = init;
 
 module.exports.getIndexPage = getIndexPage;
 module.exports.getPost = getPost;

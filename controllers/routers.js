@@ -8,8 +8,8 @@
 var express = require('express');
 var router = express.Router();
 
-const config = require('./config/main.config');
-var service = require('./main-service');
+const config = require('../config/main.config');
+const service = require('./main-service');
 
 let logSettings = {};
 if(config.env === 'production'){
