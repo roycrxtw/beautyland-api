@@ -50,8 +50,8 @@ router.get(['/readme'], function(req, res, next){
 });
 
 
-router.get('/info', function(req, res, next){
-	res.json({message: 'Beautyland API, author: Roy Lu. Nov 2017. #0751'});
+router.get(['/about', '/info'], (req, res, next) => {
+	res.json({message: 'Beautyland API, author: Roy Lu(royvbtw) 2017 -2018. #1401T0310'});
 });
 
 
