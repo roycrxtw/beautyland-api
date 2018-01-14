@@ -25,8 +25,7 @@ describe('Test for index.js', () => {
 
   describe('GET /not/found', () => {
     test('return 404 if the path has not found anything.', (done) => {
-      expect.assertions(2);
-      expect(1).toBe(1);
+      expect.assertions(1);
       request.get('http://localhost:3004/foo/bar').end((error, res) => {
         expect(res.status).toBe(404);
         done();
@@ -36,10 +35,20 @@ describe('Test for index.js', () => {
 
   describe('GET /readme', () => {
     test('should return status 200', (done) => {
-      expect.assertions(2);
-      expect(1).toBe(1);
+      expect.assertions(1);
       request.get('http://localhost:3004/readme').end((error, res) => {
         expect(res.status).toBe(200);
+        done();
+      });
+    });
+  });
+
+  describe('GET /about', () => {
+    test('should return status 200 and a message within JSON', (done) => {
+      expect.assertions(2);
+      request.get('http://localhost:3004/about').end((error, res) => {
+        expect(res.status).toBe(200);
+        expect(res.body).toHaveProperty('message');
         done();
       });
     });
