@@ -97,6 +97,7 @@ class DatabaseService{
           return reject(err);
         }
         if(result.result.n === 1){
+          log.info(`Post[${preparedPost.postId}] saved.`);
           return resolve({ok: 1});
         }else{
           return reject('Wrong result.n=', result.result.n);

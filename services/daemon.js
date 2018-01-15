@@ -58,7 +58,10 @@ module.exports.buildPosts = buildPosts;
  */
 async function buildPosts(url = BOARD_URL){
   try{
-    if(!dbService){ return false; }   // Do nothing if dbService does not set up
+    if(!dbService){
+      log.error('The dbService does not exist.');
+      return false;
+    }   // Do nothing if dbService does not set up
 
     const pttContent = await util.fetchHtml(url);
 
