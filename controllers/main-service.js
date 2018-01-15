@@ -8,30 +8,30 @@
 
 //var preloadList = require('./preload-list');
 
-const dbConfig = require('../config/db.config');
-const dbService = require('../services/database-service').init(dbConfig.mainDbUrl);
-
 const config = require('../config/main.config');
-const PAGE_SIZE = Number(config.defaultPageSize);
-
-let logSettings = {};
-if(config.env === 'production'){
-	logSettings = [
-    {level: config.LOG_LEVEL, path: 'log/main.log'}, 
-    {level: 'error', path: 'log/error.log'}
-  ];
-}else{
-  logSettings = [
-		{level: 'debug', stream: process.stdout},
-		{level: 'debug', path: 'log/debug.log'},
-		{level: 'error', path: 'log/error.log'}
-	];
-}
+const logSettings = (config.env === 'production')? [
+  {level: config.LOG_LEVEL, path: 'log/main.log'}, 
+  {level: 'error', path: 'log/error.log'}
+]: [
+  {level: 'debug', stream: process.stdout},
+  {level: 'debug', path: 'log/debug.log'},
+  {level: 'error', path: 'log/error.log'}
+];
 
 const log = require('bunyan').createLogger({
   name: 'accesslog',
   streams: logSettings
 });
+
+
+const dbConfig = require('../config/db.config');
+let dburl = (config.env === 'production')? dbConfig.mainDbUrl: config.testDbUrl;
+log.debug(`dburl=${dburl}`);
+const dbService = require('../services/database-service').init(dburl);
+
+const PAGE_SIZE = Number(config.defaultPageSize);
+
+
 
 
 let daemonService = null;
@@ -179,16 +179,27 @@ async function getRandomPosts(size){
 
 
 /**
- * 
- * @param {string} postId 
- * @return {boolean} true if process finished successfully. 
+ * PUT '/post/:postId'
+ * Update the view count for the specific post
  */
-async function updatePostViewCount(postId){
-	try{
-		return await dbService.updatePostViewCount({postId: postId});
-	}catch(ex){
-		log.error({postId: postId, ex: ex.stack}, 'Error in main-service.updatePostViewCount()');
-	}
+async function postViewCountHandler(req, res, next){
+  try{
+    if(!dbService){
+      throw new Error('dbService does not exist');
+    }
+
+    const postId = req.params.postId;
+    const isExists = await dbService.checkPostExists(postId);
+    if(!isExists){
+      return res.status(404).json({message: 'The post does not exist'});
+    }
+
+    const flag = await dbService.updatePostViewCount({ postId });
+    return res.status(200).json({message: 'The view count updated.'});
+  }catch(ex){
+    log.error({postId: req.params.postId, ex: ex.stack}, 'Error in put>post/:postId');
+    return res.sendStatus(500);
+  }
 }
 
 
@@ -206,6 +217,26 @@ async function buildPosts(pageIndex){
 	}
 }
 
+async function deletePostHandler(req, res, next){
+  try{
+    const key = req.get('secretKey');
+    if(key !== config.secretKey){
+      return res.status(401).json({message: 'Invalid action.'});
+    }
+
+    const postId = req.params.postId;
+    const flag = await dbService.deletePost(postId);
+    if(flag){
+      return res.status(200).json({message: 'Post was deleted.'});
+    }else{
+      return res.status(404).json({message: 'The post does not exist.'});
+    }
+  }catch(ex){
+    log.error({postId: req.params.postId, ex: ex.stack}, 'Error in main.put>post/:postId');
+    return res.sendStatus(500);
+  }
+}
+
 module.exports = init;
 
 module.exports.getIndexPage = getIndexPage;
@@ -214,5 +245,6 @@ module.exports.getTrendsPage = getTrendsPage;
 module.exports.getWeeklyTrendsPage = getWeeklyTrendsPage;
 module.exports.getMonthlyTrendsPage = getMonthlyTrendsPage;
 module.exports.getRandomPosts = getRandomPosts;
-module.exports.updatePostViewCount = updatePostViewCount;
+module.exports.postViewCountHandler = postViewCountHandler;
 module.exports.buildPosts = buildPosts;
+module.exports.deletePostHandler = deletePostHandler;

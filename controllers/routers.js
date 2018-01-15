@@ -143,20 +143,9 @@ router.get('/post/:postId', async (req, res, next) => {
 /**
  * Update post view count for the specified post when recevied put request.
  */
-router.put('/post/:postId', async function(req, res, next){
-  try{
-    const postId = req.params.postId;
-    const flag = await service.updatePostViewCount(postId);
-    if(flag){
-      return res.status(200).send('ViewCount updating ok.');
-    }else{
-      return res.sendStatus(400);
-    }
-  }catch(ex){
-    log.error({postId: req.params.postId, ex: ex.stack}, 'Error in routers.put>post/:postId');
-    return res.sendStatus(500);
-  }
-});
+router.put('/post/:postId', service.postViewCountHandler);
+
+router.delete('/post/:postId', service.deletePostHandler);
 
 
 /**

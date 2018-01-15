@@ -29,10 +29,12 @@ const log = require('bunyan').createLogger({
 });
 
 
+
 class DatabaseService{
   constructor(url){
     this.dburl = url;
     this.conn = null;
+    this.postsCollection = null;
     this.instanceId = Date.now();
   }
 
@@ -40,6 +42,11 @@ class DatabaseService{
     if(!this.conn){
       try{
         this.conn = await MongoClient.connect(this.dburl, connectionOptions);
+        if(config.env === 'production'){
+          this.postsCollection = this.conn.collection('posts');
+        }else{
+          this.postsCollection = this.conn.collection('test-posts');
+        }
         log.info('DatabaseService.connect() finished.');
       }catch(ex){
         log.error({ex: ex.stack}, 'Error in database-service.connect()');
@@ -61,16 +68,15 @@ class DatabaseService{
 
   /**
    * @param {string} postId The post id
-   * @param {string} collectionName The collection name.
    * @return {Promise<boolean>} Resolve true if the post exists.
    */
-  checkPostExists(postId, collectionName = 'posts'){
+  checkPostExists(postId){
     return new Promise( (resolve, reject) => {
       if(!this.conn){
         return reject('Database connection does not exist.');
       }
 
-      this.conn.collection(collectionName).findOne({postId: postId}, function(err, doc){
+      this.postsCollection.findOne({postId: postId}, function(err, doc){
         if(err){
           return reject(err);
         }
@@ -87,37 +93,49 @@ class DatabaseService{
     return (this.conn)? true: false;
   }
 
-  savePost(preparedPost, collectionName = 'posts'){
-    return new Promise( (resolve, reject) => {
+  async savePost(preparedPost){
+    //return new Promise( (resolve, reject) => {
+    try{
       if(!this.conn){
-        return reject('Database connection does not exist.');
+        //return reject('Database connection does not exist.');
+        throw new Error('Database connection does not exist.');
       }
-      this.conn.collection(collectionName).insertOne(preparedPost, function(err, result){
-        if(err){
-          return reject(err);
-        }
-        if(result.result.n === 1){
-          log.info(`Post[${preparedPost.postId}] saved.`);
-          return resolve({ok: 1});
-        }else{
-          return reject('Wrong result.n=', result.result.n);
-        }
-      });
-    });
+
+      const isExists = await this.postsCollection.findOne({postId: preparedPost.postId});
+      if(isExists){
+        return false;     // The post already exists
+      }
+
+      const result = await this.postsCollection.insertOne(preparedPost);
+      if(result && result.result.n === 1){
+        log.info(`Post[${preparedPost.postId}] saved.`);
+        //return resolve({ok: 1});
+        return true;
+      }else{
+        throw new Error({
+          result,
+          message: 'Error after insertOne in db.savePost()'
+        });
+      }
+    }catch(ex){
+      log.error({
+        ex, args: arguments, ex: ex.stack
+      }, 'Error in db-service.updatePostViewCount()');
+    }
   }
 
   /**
    * Read post from database.
    * @param {string} postId The post id
-   * @param {string} collectionName The collection name
-   * @return {post|null} The found post, or null if there is no result for the specified postId.
+   * @return {post|null} The found post, or null if there is no result for the given postId.
    */
-  readPost(postId, collectionName = 'posts'){
+  readPost(postId){
     return new Promise( (resolve, reject) => {
       if(!this.conn){
         return reject('Database connection does not exist.');
       }
-      this.conn.collection(collectionName).findOne({postId: postId}, {fields: {_id: 0}}, 
+
+      this.postsCollection.findOne({postId: postId}, {fields: {_id: 0}}, 
           function(err, doc){
         if(err){
           return reject(err);
@@ -132,13 +150,13 @@ class DatabaseService{
   }
 
 
-  readPosts({query = {}, order = {createdAt: -1}, size = 10, skip = 0, collectionName = 'posts'} = {}){		
+  readPosts({query = {}, order = {createdAt: -1}, size = 10, skip = 0} = {}){		
     return new Promise( (resolve, reject) => {
       if(!this.conn){
         return reject('Database connection does not exist.');
       }
-      this.conn.collection(collectionName).find(query).sort(order)
-          .skip(skip).limit(size).project({_id: 0}).toArray(function(err, docs){
+      this.postsCollection.find(query).sort(order).skip(skip)
+          .limit(size).project({_id: 0}).toArray(function(err, docs){
         if(err){
           return reject(err);
         }
@@ -151,14 +169,14 @@ class DatabaseService{
     });
   }
 
-  readRandomPosts({size = 20, collectionName = 'posts'} = {}){
+  readRandomPosts({size = 20} = {}){
     return new Promise( async (resolve, reject) => {
       if(!this.conn){
         return reject('Database connection does not exist.');
       }
 
       try{
-        const docs = await this.conn.collection(collectionName).aggregate([{
+        const docs = await this.postsCollection.aggregate([{
           $sample: {size}
         }]).toArray();
         return resolve(docs);
@@ -169,28 +187,30 @@ class DatabaseService{
   }
 
 
-  deletePost(postId, collectionName = 'posts'){
+  deletePost(postId){
     return new Promise( (resolve, reject) => {
       if(!this.conn){
         return reject('Db does not exist.');
       }
-      this.conn.collection(collectionName).deleteOne({postId: postId}, function(err, result){
+      this.postsCollection.deleteOne({postId: postId}, function(err, result){
         if(err){
           return reject(err);
         }
-        if(result.result.ok === 1){
-          return resolve({ok: 1, n: result.result.n});
-        }else{
-          return reject('Something wrong in database-service.deletePost(): result=', result);
+        if(result.result.ok === 1 && result.result.n === 1){
+          //return resolve({ok: 1, n: result.result.n});
+          return resolve(true);
+        }else{    // the post does not exist. Delete nothing
+          return resolve(false);
+          //return reject('Something wrong in database-service.deletePost(): result=', result);
         }
       });
     });
   }
 
 
-  async updatePostViewCount({postId, collectionName = 'posts'} = {}){
+  async updatePostViewCount({postId} = {}){
     try{
-      const r = await this.conn.collection(collectionName).findOneAndUpdate(
+      const r = await this.postsCollection.findOneAndUpdate(
         {postId: postId},  {$inc: {viewCount: 1}}, {returnOriginal: false}
       );
 

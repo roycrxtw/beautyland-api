@@ -13,48 +13,8 @@ var db = null;
 var testCollection = null;
 let dbService = null;
 
-const preparedPosts = [{
-  author: 'Karl',
-  postId: 'test.id.karl',
-  title: '[dis] 2 types of question mark',
-  link: 'https://www.ptt.cc/bbs/Beauty/test.id.karl.html',
-  viewCount: 123,
-  createdAt: new Date('2017-08-06T13:24:26.000Z'),
-  images: [
-    {url: 'http://i.imgur.com/G8mgxvB.jpg', width: 521, height: 534},
-    {url: 'http://i.imgur.com/aQOUYt3.jpg', width: 250, height: 250}
-  ]
-}, {
-	author: 'Teemo',
-	postId: 'test.id.teemo',
-	title: 'Teemo can speak!',
-	link: 'https://www.ptt.cc/bbs/Beauty/test.id.teemo.html',
-	viewCount: 56,
-	createdAt: new Date('2017-08-06T09:24:26.000Z'),
-	images: [
-		{url: 'http://i.imgur.com/lYPV8uO.jpg', width: 433, height: 234}, 
-		{url: 'http://i.imgur.com/Wr9hEQe.jpg', width: 720, height: 960}
-	]
-}, {
-	author: 'Thrall',
-	postId: 'test.id.thrall',
-	title: 'For the horde',
-	link: 'https://www.ptt.cc/bbs/Beauty/test.id.thrall.html',
-	viewCount: 22,
-	createdAt: new Date('Mon Aug 02 2017 18:24:26 GMT+0800 (台北標準時間)'),
-	images: [
-		{url: 'http://i.imgur.com/uJyaBIK.jpg', width: 858, height: 854}, 
-		{url: 'http://i.imgur.com/Pt0nQMQ.jpg', width: 601, height: 851}
-	]
-}];
-
-
-describe('Testing for db-service', () => {
-  test('1 + 1 = 2', () => {
-    expect.assertions(1);
-    expect(1 + 1).toBe(2);
-  });
-});
+const preparedPosts = require('../test/sample-posts');
+const sampleCount = preparedPosts.length;
 
 describe('Testing for database-service', () => {
   //this.timeout(15000);
@@ -66,7 +26,7 @@ describe('Testing for database-service', () => {
     
     // Set up a connection directly to testing database
     db = await MongoClient.connect(TEST_DB_URL, connectionOptions);
-    testCollection = db.collection('test');
+    testCollection = db.collection('test-posts');
     testCollection.remove({});
   });
 
@@ -74,7 +34,7 @@ describe('Testing for database-service', () => {
     // Insert test documents into database
     testCollection.insertMany(preparedPosts, function(err, result){
       expect(err).toBeNull();
-      expect(result.result.n).toBe(3);
+      expect(result.result.n).toBe(sampleCount);
       done();
     });
   });
@@ -105,10 +65,10 @@ describe('Testing for database-service', () => {
 
 
   describe('Check the test collection status', function(){
-    test('should contain 3 testing documents', async function(){
+    test(`should contain ${sampleCount} testing documents`, async() => {
       //expect.assertions(1);
-      let count = await testCollection.count();
-      expect(count).toBe(3);
+      const count = await testCollection.count();
+      expect(count).toBe(sampleCount);
     });
   });
 
@@ -123,18 +83,18 @@ describe('Testing for database-service', () => {
 
   describe('database-service.checkPostExists()', function(){
     test('should return true/false if the post does/does\'t exist.', async function(){
-      let flag = await dbService.checkPostExists('test.id.thrall', 'test');
+      let flag = await dbService.checkPostExists('test.id.thrall');
       expect(flag).toBe(true);
 
-      flag = await dbService.checkPostExists('test.id.voljin', 'test');
+      flag = await dbService.checkPostExists('test.id.voljin');
       expect(flag).toBe(false);
     });
   });
 
 
   describe('database-service.savePost(): Save post into database', () =>{
-    test('should return ok', async () => {
-      let preparedPost = {
+    test('should return ok if everything is fine', async () => {
+      const preparedPost = {
         author: 'roy',
         postId: 'test.id.roy',
         title: 'A greeting from Roy',
@@ -144,10 +104,28 @@ describe('Testing for database-service', () => {
         createdAt: new Date(),
         imgUrls: ['http://i.imgur.com/G8mgxvB.jpg', 'http://i.imgur.com/aQOUYt3.jpg']
       };
-      let result = await dbService.savePost(preparedPost, 'test');
-      expect(result.ok).toBe(1);
+      const result = await dbService.savePost(preparedPost, 'test');
+      expect(result).toBe(true);
+    });
+
+    test('should return false if the post already exists', async () => {
+      const preparedPost = {
+        author: 'BAD Teemo',
+        postId: 'test.id.teemo',
+        title: 'whatever',
+        postDate: '8/07',
+        link: 'https://www.ptt.cc/bbs/Beauty/test.id.badteemo.html',
+        viewCount: 21,
+        createdAt: new Date(),
+        imgUrls: ['http://i.imgur.com/G8mgxvB.jpg', 'http://i.imgur.com/aQOUYt3.jpg']
+      };
+      const result = await dbService.savePost(preparedPost);
+      expect(result).toBeFalsy();
+      const doc = await testCollection.findOne({postId: 'test.id.teemo'});
+      expect(doc).toEqual(preparedPosts[1]);
     });
   });
+
 
   describe('database-service.readPost(postId): Read post from database', function(){
     test('should return expected post document.', async () => {
@@ -193,15 +171,16 @@ describe('Testing for database-service', () => {
   });
 
 
-  describe('database-service.deletePost(postId): Delete post from database', function(){
-    test('should return ok', async function(){
-      let result = await dbService.deletePost('test.id.teemo', 'test');
-      expect(result.ok).toBe(1);
-      
+  describe('database-service.deletePost(postId): Delete a post from database', () => {
+    test('should return true if the post exists', async () => {
+      const result = await dbService.deletePost('test.id.teemo');
+      expect(result).toBe(true);
+    });
+    
+    test('should return false if the post does not exist', async () => {
       // to delete teemo again
-      let result1 = await dbService.deletePost('test.id.teemo', 'test');
-      expect(result1.ok).toBe(1);
-      expect(result1.n).toBe(0);
+      const result = await dbService.deletePost('test.id.ghost');
+      expect(result).toBeFalsy();
     });
   });
 
