@@ -40,8 +40,8 @@ npm test
 ```
 The test db url setting is:
 ```
-// beautyland-api/config/db.config
-mongodb://localhost:27017/beautyland-testingdb
+// beautyland-api/config/main.config
+testDbUrl: 'mongodb://localhost:27017/beautyland-testingdb'
 ```
 You can change it according to your environment.
 
