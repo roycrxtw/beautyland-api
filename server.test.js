@@ -183,24 +183,4 @@ describe('Test for index.js', () => {
       });
     });
   });
-
-  describe('PUT /post: Update the post view count', () => {
-    test('should return 200 if the post exists', (done) => {
-      request.put('http://localhost:3004/post/test.id.teemo')
-          .end((error, res) => {
-        expect(res.status).toBe(200);
-        expect(res.body).toHaveProperty('message');
-        done();
-      });
-    });
-
-    test('should return 404 if the post does not exist', (done) => {
-      request.put('http://localhost:3004/post/test.id.ghost')
-          .end((error, res) => {
-        expect(res.status).toBe(404);
-        expect(res.body).toHaveProperty('message');
-        done();
-      });
-    });
-  });
 });

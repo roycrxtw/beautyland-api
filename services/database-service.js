@@ -207,6 +207,22 @@ class DatabaseService{
     });
   }
 
+  async updatePostVisibility({postId, visibility} = {}){
+    try{
+      const result = await this.postsCollection.findOneAndUpdate(
+        {postId}, {$set: {visibility} }, {returnOriginal: false}
+      );
+      log.info(`result=`, result);
+      if(result.ok && result.value){
+        return true;
+      }else{
+        return false;
+      }
+    }catch(ex){
+      log.error({visibility, ex: ex.stack}, 'Error in db-service.updatePostVisibility()');
+      return false;
+    }
+  }
 
   async updatePostViewCount({postId} = {}){
     try{

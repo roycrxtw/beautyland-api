@@ -187,22 +187,34 @@ async function getRandomPosts(size){
 
 /**
  * PUT '/post/:postId'
- * Update the view count for the specific post
+ * Update the post: set visibility
  */
-async function postViewCountHandler(req, res, next){
+async function updatePostHandler(req, res, next){
   try{
     if(!dbService){
       throw new Error('dbService does not exist');
     }
 
     const postId = req.params.postId;
+    const visibility = req.body.visibility;
+    const key = req.get('secretKey');
+    if(key !== config.secretKey){
+      return res.status(401).json({message: 'Invalid action.'});
+    }
+
     const isExists = await dbService.checkPostExists(postId);
     if(!isExists){
       return res.status(404).json({message: 'The post does not exist'});
     }
 
-    const flag = await dbService.updatePostViewCount({ postId });
-    return res.status(200).json({message: 'The view count updated.'});
+    log.info(`updatePostHandler: visibility=${visibility}`);
+
+    const flag = await dbService.updatePostVisibility({ postId, visibility });
+    if(flag){
+      return res.status(200).json({message: 'The view count updated.'});
+    }else{
+      return res.status(500).json({message: 'Oops. There is something wrong.'});
+    }
   }catch(ex){
     log.error({postId: req.params.postId, ex: ex.stack}, 'Error in put>post/:postId');
     return res.sendStatus(500);
@@ -252,6 +264,6 @@ module.exports.getTrendsPage = getTrendsPage;
 module.exports.getWeeklyTrendsPage = getWeeklyTrendsPage;
 module.exports.getMonthlyTrendsPage = getMonthlyTrendsPage;
 module.exports.getRandomPosts = getRandomPosts;
-module.exports.postViewCountHandler = postViewCountHandler;
+module.exports.updatePostHandler = updatePostHandler;
 module.exports.buildPosts = buildPosts;
 module.exports.deletePostHandler = deletePostHandler;

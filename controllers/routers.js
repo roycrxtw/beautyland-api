@@ -126,7 +126,7 @@ router.get('/post/:postId', service.getPostHandler);
 /**
  * Update post view count for the specified post when recevied put request.
  */
-router.put('/post/:postId', service.postViewCountHandler);
+router.put('/post/:postId', service.updatePostHandler);
 
 router.delete('/post/:postId', service.deletePostHandler);
 

@@ -184,6 +184,33 @@ describe('Testing for database-service', () => {
     });
   });
 
+  describe('database-service.updatePostVisibility(visibility): set visibility', () =>{
+    test('should return false if the post does not exist', async () => {
+      const visibility = true;
+      const result = await dbService.updatePostVisibility({
+        visibility,
+        postId: 'test.id.ghost'
+      });
+      expect(result).toBe(false);
+    });
+    
+    test('should return true if update is successfully', async () => {
+      const visibility = true;
+      const result = await dbService.updatePostVisibility({
+        visibility,
+        postId: 'test.id.teemo'
+      });
+      expect(result).toBeTruthy();
+      const doc = await testCollection.findOne({postId: 'test.id.teemo'});
+      expect(doc.author).toBe(preparedPosts[1].author);
+      expect(doc.title).toBe(preparedPosts[1].title);
+      expect(doc.link).toBe(preparedPosts[1].link);
+      expect(doc.images).toEqual(preparedPosts[1].images);
+      expect(doc.postId).toBe(preparedPosts[1].postId);
+      expect(doc.visibility).toBe(visibility);
+    });
+  });
+
   describe('database-service.updatePostViewCount(postId): Update post click count by 1', function(){
     test('should return true if postId exists', async function(){
       let result = await dbService.updatePostViewCount({
