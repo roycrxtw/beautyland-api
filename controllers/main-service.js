@@ -75,22 +75,29 @@ async function getIndexPage(page = 1){
 
 
 /**
- * Get the post data from database
- * @param {string} postId The post id
- * @return {post object|null} The post data or null if the post doesn't exist.
+ * Handler for GET /post/:postId
+ * Get the post data from database service and update its view count if the post exists
  */
-async function getPost(postId){
-	try{
-    if(!dbService){
-      throw new Error('dbService does not exist');
+async function getPostHandler(req, res, next){
+  try{
+    if(!dbService){ throw new Error('dbService does not exist'); }
+
+    const postId = req.params.postId;
+    log.info(`GET /post/${postId}`);
+
+    const post = await dbService.readPost(postId);
+    if(post){
+      res.status(200).json(post);
+      await dbService.updatePostViewCount(postId);
+    }else{
+      return res.status(404).json({message: 'No any result.'});
     }
-    
-		const post = await dbService.readPost(postId);
-		return post;
-	}catch(ex){
-		log.error({args: arguments, ex: ex.stack}, 'Error in main-service.getPost()');
-	}
+  }catch(ex){
+    log.error({postId: req.params.postId, ex: ex.stack}, 'Error in service GET /post/:postId');
+    return res.sendStatus(500);
+  }
 }
+
 
 /**
  * A function wrapper for getTrendsPage() with monthly range.
@@ -240,7 +247,7 @@ async function deletePostHandler(req, res, next){
 module.exports = init;
 
 module.exports.getIndexPage = getIndexPage;
-module.exports.getPost = getPost;
+module.exports.getPostHandler = getPostHandler;
 module.exports.getTrendsPage = getTrendsPage;
 module.exports.getWeeklyTrendsPage = getWeeklyTrendsPage;
 module.exports.getMonthlyTrendsPage = getMonthlyTrendsPage;

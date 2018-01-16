@@ -120,24 +120,7 @@ router.get('/samples', async (req, res, next) => {
 /**
  * Get the post data for the given post id.
  */
-router.get('/post/:postId', async (req, res, next) => {
-  try{
-    const postId = req.params.postId;
-    log.info(`get>/post/${postId}`);
-
-    // call the main service to handler this request.
-    // It will return an empty object {} when the post doesn't exist.
-    const post = await service.getPost(postId);
-    if(post){
-      return res.json(post);
-    }else{
-      return res.status(404).json({message: 'No any result.'});
-    }
-  }catch(ex){
-    log.error({postId: req.params.postId, ex: ex.stack}, 'Error in routers.get>/post/:postId');
-    return res.sendStatus(500);
-  }
-});
+router.get('/post/:postId', service.getPostHandler);
 
 
 /**
