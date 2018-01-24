@@ -78,7 +78,7 @@ async function buildPosts(url = BOARD_URL){
           // preparedPost did not generate, do nothing.
         }
       }else{
-        log.debug('Post exists, do nothing.');
+        log.debug(`Post [${list[i].postId}] exists, do nothing.`);
       }
     }
     // Send a command message to parent process(main-service) to update its preloadList

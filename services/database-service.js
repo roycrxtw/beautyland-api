@@ -119,7 +119,7 @@ class DatabaseService{
       }
     }catch(ex){
       log.error({
-        ex, args: arguments, ex: ex.stack
+        ex, args: arguments, stack: ex.stack
       }, 'Error in db-service.updatePostViewCount()');
     }
   }
