@@ -129,14 +129,21 @@ class DatabaseService{
    * @param {string} postId The post id
    * @return {post|null} The found post, or null if there is no result for the given postId.
    */
-  readPost(postId){
+  readPost(postId, {isAdmin = false} = {}){
     return new Promise( (resolve, reject) => {
       if(!this.conn){
         return reject('Database connection does not exist.');
       }
 
-      this.postsCollection.findOne({postId: postId}, {fields: {_id: 0}}, 
-          function(err, doc){
+      const query = {postId};
+      const projection = {'_id': 0};
+
+      if(!isAdmin){
+        query.visibility = true;
+        projection.visibility = 0;
+      }
+
+      this.postsCollection.findOne(query, projection, (err, doc) => {
         if(err){
           return reject(err);
         }
@@ -150,13 +157,18 @@ class DatabaseService{
   }
 
 
+  /**
+   * Read posts from database
+   * @return {posts|null} The found posts, or null if there is no any result
+   */
   readPosts({query = {}, order = {createdAt: -1}, size = 10, skip = 0} = {}){		
     return new Promise( (resolve, reject) => {
       if(!this.conn){
         return reject('Database connection does not exist.');
       }
-      this.postsCollection.find(query).sort(order).skip(skip)
-          .limit(size).project({_id: 0}).toArray(function(err, docs){
+      this.postsCollection.find(query)
+      .sort(order).skip(skip).limit(size).project({_id: 0, visibility: 0})
+      .toArray((err, docs) => {
         if(err){
           return reject(err);
         }
@@ -176,9 +188,10 @@ class DatabaseService{
       }
 
       try{
-        const docs = await this.postsCollection.aggregate([{
-          $sample: {size}
-        }]).toArray();
+        const docs = await this.postsCollection.aggregate([
+          { $match: {visibility: true} }, 
+          { $sample: {size} }          
+        ]).toArray();
         return resolve(docs);
       }catch(ex){
         return reject(ex);
@@ -207,7 +220,7 @@ class DatabaseService{
     });
   }
 
-  async updatePostVisibility({postId, visibility} = {}){
+  async updatePostVisibility(postId, visibility){
     try{
       const result = await this.postsCollection.findOneAndUpdate(
         {postId}, {$set: {visibility} }, {returnOriginal: false}
@@ -224,7 +237,7 @@ class DatabaseService{
     }
   }
 
-  async updatePostViewCount({postId} = {}){
+  async updatePostViewCount(postId){
     try{
       const r = await this.postsCollection.findOneAndUpdate(
         {postId: postId},  {$inc: {viewCount: 1}}, {returnOriginal: false}
@@ -236,7 +249,7 @@ class DatabaseService{
         return false;
       }
     }catch(ex){
-      log.error({args: arguments, ex: ex.stack}, 'Error in db-service.updatePostViewCount()');
+      log.error({postId, ex: ex.stack}, 'Error in db-service.updatePostViewCount()');
       return false;
     }
   }

@@ -129,38 +129,62 @@ describe('Testing for database-service', () => {
 
   describe('database-service.readPost(postId): Read post from database', function(){
     test('should return expected post document.', async () => {
-      const post = await dbService.readPost('test.id.teemo', 'test');
+      const post = await dbService.readPost('test.id.teemo');
       expect(post.author).toBe(preparedPosts[1].author);
       expect(post.postId).toBe(preparedPosts[1].postId);
       expect(post.title).toBe(preparedPosts[1].title);
       expect(post.link).toBe(preparedPosts[1].link);
+      expect(post.visibility).toBe(undefined);
       expect(post.images).toEqual(preparedPosts[1].images);
     });
 
-    test('should return null if the post does not exist', async () => {
-      const post = await dbService.readPost('test.id.ghost', 'test');
+    test('should return null if the post is invisible', async () => {
+      const post = await dbService.readPost('test.id.noc');
       expect(post).toBeNull();
+    });
+
+
+    test('should return null if the post does not exist', async () => {
+      const post = await dbService.readPost('test.id.ghost');
+      expect(post).toBeNull();
+    });
+
+    test('should return the hidden post when it is admin', async () => {
+      const post = await dbService.readPost('test.id.noc', {isAdmin: true});
+      expect(post.author).toBe(preparedPosts[0].author);
+      expect(post.postId).toBe(preparedPosts[0].postId);
+      expect(post.title).toBe(preparedPosts[0].title);
+      expect(post.link).toBe(preparedPosts[0].link);
+      expect(post.visibility).toBe(false);
+      expect(post.images).toEqual(preparedPosts[0].images);
     });
   });
 
 
-  describe('database-service.readPosts(query, opts): Read posts from database', function(){
+  describe('db-service.readPosts(query, opts): Read posts from database', function(){
     test('should return null if there is no any result.', async () => {
-      let posts = await dbService.readPosts({
-        query: {author: 'nobody'}, collectionName: 'test'
+      const posts = await dbService.readPosts({
+        query: {author: 'nobody'}
       });
       expect(posts).toBeNull();
     });
 
     test('should return 2 post documents.', async () => {
-      let timeFrom = new Date('2017-08-06T00:00:00.000Z');
-      let timeTo = new Date('2017-08-07T00:00:00.000Z');
+      let timeFrom = new Date('2010-01-01T00:00:00.000Z');
+      let timeTo = new Date('2017-02-01T00:00:00.000Z');
       let posts = await dbService.readPosts({
-        query: {createdAt: {$gte: timeFrom, $lt: timeTo}},
-        collectionName: 'test'
+        query: {createdAt: {$gte: timeFrom, $lt: timeTo}}
       });
       expect(posts.length).toBe(2);
+      expect(posts[0].author).toBe('Teemo');
+      expect(posts[1].author).toBe('Sona');
     });
+
+    // test('should return only visible post', async () => {
+    //   const posts = await dbService.readPosts();
+    //   expect(Array.isArray(posts)).toBe(true);
+    //   expect(posts.length).toBe(preparedPosts.length - 1);  // Since there is only 1 invisible sample
+    // });
   });
 
   describe('database-service.readRandomPosts(): Read random posts from database', function(){
@@ -184,22 +208,14 @@ describe('Testing for database-service', () => {
     });
   });
 
-  describe('database-service.updatePostVisibility(visibility): set visibility', () =>{
+  describe('database-service.updatePostVisibility(postId, visibility): set visibility', () =>{
     test('should return false if the post does not exist', async () => {
-      const visibility = true;
-      const result = await dbService.updatePostVisibility({
-        visibility,
-        postId: 'test.id.ghost'
-      });
+      const result = await dbService.updatePostVisibility('test.id.ghost', true);
       expect(result).toBe(false);
     });
-    
-    test('should return true if update is successfully', async () => {
-      const visibility = true;
-      const result = await dbService.updatePostVisibility({
-        visibility,
-        postId: 'test.id.teemo'
-      });
+
+    test('should return true if the visibility successfully updated to false', async () => {
+      const result = await dbService.updatePostVisibility('test.id.teemo', false);
       expect(result).toBeTruthy();
       const doc = await testCollection.findOne({postId: 'test.id.teemo'});
       expect(doc.author).toBe(preparedPosts[1].author);
@@ -207,35 +223,37 @@ describe('Testing for database-service', () => {
       expect(doc.link).toBe(preparedPosts[1].link);
       expect(doc.images).toEqual(preparedPosts[1].images);
       expect(doc.postId).toBe(preparedPosts[1].postId);
-      expect(doc.visibility).toBe(visibility);
+      expect(doc.visibility).toBe(false);
+    });
+    
+    test('should return true if update is successfully', async () => {
+      const result = await dbService.updatePostVisibility('test.id.teemo', true);
+      expect(result).toBeTruthy();
+      const doc = await testCollection.findOne({postId: 'test.id.teemo'});
+      expect(doc.author).toBe(preparedPosts[1].author);
+      expect(doc.title).toBe(preparedPosts[1].title);
+      expect(doc.link).toBe(preparedPosts[1].link);
+      expect(doc.images).toEqual(preparedPosts[1].images);
+      expect(doc.postId).toBe(preparedPosts[1].postId);
+      expect(doc.visibility).toBe(true);
     });
   });
 
-  describe('database-service.updatePostViewCount(postId): Update post click count by 1', function(){
-    test('should return true if postId exists', async function(){
-      let result = await dbService.updatePostViewCount({
-        postId: 'test.id.teemo', 
-        collectionName: 'test'
-      });
+  describe('db-service.updatePostViewCount(postId): Update post click count by 1', function(){
+    test('should return true if postId exists', async () => {
+      const result = await dbService.updatePostViewCount('test.id.teemo');
       expect(result).toBe(true);
     });
 
-    test('should return false if postId does not exist', async function(){
-      // to test if postId doesn't exist
-      let result1 = await dbService.updatePostViewCount({
-        postId: 'test.id.ghost', 
-        collectionName: 'test'
-      });
-      expect(result1).toBe(false);
+    test('should return false if the post does not exist', async () => {
+      const result = await dbService.updatePostViewCount('test.id.ghost');
+      expect(result).toBe(false);
     });
 
-    test('should have expected view counts if process finished', async function(){
-      await dbService.updatePostViewCount({
-        postId: 'test.id.teemo', 
-        collectionName: 'test'
-      });
+    test('should have an expected view count if process finished', async function(){
+      await dbService.updatePostViewCount('test.id.teemo');
 
-      let result = await testCollection.findOne({postId: 'test.id.teemo'});
+      const result = await testCollection.findOne({postId: 'test.id.teemo'});
       expect(result.viewCount).toBe(57);
     });
   });

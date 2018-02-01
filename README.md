@@ -17,6 +17,14 @@ You can also use /samples end point for a random post results:
 https://beautyland-api.royvbtw.uk/samples
 ```
 
+### Get the post
+
+You can fetch a single post data with this end point:
+
+```
+https://beautyland-api.royvbtw.uk/posts/[the-post-id]
+```
+
 ## The data format
 The returned data will be formatted in JSON.
 ```
@@ -32,19 +40,30 @@ The returned data will be formatted in JSON.
 ```
 
 ## Test
+
 The database-service test uses a local mongodb rather than a remote mongodb to speed up test. You must have a local mongodb installed on your machine if you want to run the test.
 
-To run the test:
+To run the test with jest and eslint:
+
 ```
 npm test
 ```
+
+To run the jest test only:
+
+```
+npm run testonly
+```
+
 The test db url setting is:
+
 ```
 // beautyland-api/config/main.config
 testDbUrl: 'mongodb://localhost:27017/beautyland-testingdb'
 ```
+
 You can change it according to your environment.
 
-
 ## License
+
 Beautyland API is licensed under the MIT license.

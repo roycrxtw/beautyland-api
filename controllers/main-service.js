@@ -3,10 +3,9 @@
  * Project Beautyland
  * Main service
  * @author Roy Lu(royvbtw)
- * Sep 2017
+ * Sep 2017 -
  */
 
-//var preloadList = require('./preload-list');
 
 const config = require('../config/main.config');
 const logSettings = (config.env === 'production')? [
@@ -26,13 +25,9 @@ const log = require('bunyan').createLogger({
 
 const dbConfig = require('../config/db.config');
 let dburl = (config.env === 'production')? dbConfig.mainDbUrl: config.testDbUrl;
-log.debug(`dburl=${dburl}`);
 const dbService = require('../services/database-service').init(dburl);
 
 const PAGE_SIZE = Number(config.defaultPageSize);
-
-
-
 
 let daemonService = null;
 
@@ -49,25 +44,20 @@ const init = (async ( {daemon} = {}) => {
  */
 async function getIndexPage(page = 1){
   try{
-    if(!dbService){
-      throw new Error('dbService does not exist');
-    }
+    if(!dbService){ throw new Error('dbService does not exist'); }
 
     log.info(`getIndexPage() started. page=${page}`);
+
     page = parseInt(page, 10);
     page = (page < 0 || isNaN(page))? 1: page;
 
     const skip = (page - 1) * PAGE_SIZE;
-    const posts = await dbService.readPosts({skip: skip, size: PAGE_SIZE});
+    const posts = await dbService.readPosts({
+      query: {visibility: true},
+      skip: skip, 
+      size: PAGE_SIZE
+    });
     return posts;
-
-		// if(page <= 2){		// preloadList is a cached post list.
-		// 	return preloadList.getList(page).posts;
-		// }else{
-		// 	const skip = (page - 1) * PAGE_SIZE;
-		// 	const posts = await dbService.readPosts({skip: skip, size: PAGE_SIZE});
-		// 	return posts;
-		// }
 	}catch(ex){
 		log.error({args: arguments, ex: ex.stack}, 'Error in main-service.getIndexPage()');
 	}
@@ -75,7 +65,7 @@ async function getIndexPage(page = 1){
 
 
 /**
- * Handler for GET /post/:postId
+ * Handler for GET /posts/:postId
  * Get the post data from database service and update its view count if the post exists
  */
 async function getPostHandler(req, res, next){
@@ -83,17 +73,26 @@ async function getPostHandler(req, res, next){
     if(!dbService){ throw new Error('dbService does not exist'); }
 
     const postId = req.params.postId;
-    log.info(`GET /post/${postId}`);
+    const key = req.get('secret-key');
+    let isAdmin = false;
 
-    const post = await dbService.readPost(postId);
+    log.info(`GET /post/${postId}: key=${key}`);
+
+    if(key === config.secretKey){
+      isAdmin = true;
+    }
+
+    const post = await dbService.readPost(postId, {isAdmin});
     if(post){
+      // Return the result first, update the view count later
+      post.viewCount += 1;    // That why we have to add 1 to the view count
       res.status(200).json(post);
       await dbService.updatePostViewCount(postId);
     }else{
       return res.status(404).json({message: 'No any result.'});
     }
   }catch(ex){
-    log.error({postId: req.params.postId, ex: ex.stack}, 'Error in service GET /post/:postId');
+    log.error({postId: req.params.postId, ex: ex.stack}, 'Error in service GET /posts/:postId');
     return res.sendStatus(500);
   }
 }
@@ -153,36 +152,20 @@ async function getTrendsPage({range = 1, page = 1} = {}){
 	}
 }
 
-async function getRandomPosts(size){
+
+/**
+ * Get random posts from database. It will only return visible posts.
+ */
+async function getRandomPosts(){
   try{
     const posts = await dbService.readRandomPosts({
-      size
+      size: PAGE_SIZE
     });
     return posts;
   }catch(ex){
     log.error({args: arguments, ex: ex.stack}, 'Error in main-service.getRandomPosts()');
   }
 }
-
-
-// /**
-//  * Update the preload list.
-//  * This function will get posts from database and save to the preload list 
-//  * in order to accelerate page loading speed.
-//  */
-// async function updatePreloadList(){
-// 	try{
-// 		let preloadListSize = parseInt(config.preloadSize, 10);
-//     let posts = await dbService.readPosts({size: preloadListSize, skip: 0});
-//     if(posts){
-//       preloadList.update(posts);
-//     }else{
-//       throw new Error(`Error in updatePreloadList. It should contain certain results.`);
-//     }
-// 	}catch(ex){
-// 		log.error({ex: ex.stack}, 'Error in main-service.updatePreloadList()');
-// 	}
-// }
 
 
 /**
@@ -236,9 +219,82 @@ async function buildPosts(pageIndex){
 	}
 }
 
+
+
+/**
+ * Turn on the visibility of a given post
+ */
+async function enablePostVisibility(req, res, next){
+  try{
+    if(!dbService){
+      throw new Error('dbService does not exist');
+    }
+
+    const postId = req.params.postId;
+    const key = req.get('secret-key');
+    if(key !== config.secretKey){
+      return res.status(401).json({message: 'Invalid action.'});
+    }
+
+    const isExists = await dbService.checkPostExists(postId);
+    if(!isExists){
+      return res.status(404).json({message: 'The post does not exist'});
+    }
+
+    const flag = await dbService.updatePostVisibility(postId, true);
+    if(flag){
+      log.info(`enablePostVisibility(): success`);
+      return res.status(200).json({message: 'Visibility enabled.'});
+    }else{
+      return res.status(500).json({message: 'Oops. There is something wrong.'});
+    }
+  }catch(ex){
+    log.error({
+      postId: req.params.postId, 
+      ex: ex.stack
+    }, 'Error in service.enablePostVisibility()');
+    return res.sendStatus(500);
+  }
+}
+
+
+/**
+ * Turn off the visibility of a given post
+ */
+async function disablePostVisibility(req, res, next){
+  try{
+    if(!dbService){
+      throw new Error('dbService does not exist');
+    }
+
+    const postId = req.params.postId;
+    const key = req.get('secret-key');
+    if(key !== config.secretKey){
+      return res.status(401).json({message: 'Invalid action.'});
+    }
+
+    const isExists = await dbService.checkPostExists(postId);
+    if(!isExists){
+      return res.status(404).json({message: 'The post does not exist'});
+    }
+
+    const flag = await dbService.updatePostVisibility(postId, false);
+    if(flag){
+      log.info(`disablePostVisibility(): success`);
+      return res.status(200).json({message: 'Visibility disabled.'});
+    }else{
+      return res.status(500).json({message: 'Oops. There is something wrong.'});
+    }
+  }catch(ex){
+    log.error({postId: req.params.postId, ex: ex.stack}, 'Error in service.disablePostVisibility()');
+    return res.sendStatus(500);
+  }
+}
+
+
 async function deletePostHandler(req, res, next){
   try{
-    const key = req.get('secretKey');
+    const key = req.get('secret-key');
     if(key !== config.secretKey){
       return res.status(401).json({message: 'Invalid action.'});
     }
@@ -267,3 +323,5 @@ module.exports.getRandomPosts = getRandomPosts;
 module.exports.updatePostHandler = updatePostHandler;
 module.exports.buildPosts = buildPosts;
 module.exports.deletePostHandler = deletePostHandler;
+module.exports.enablePostVisibility = enablePostVisibility;
+module.exports.disablePostVisibility = disablePostVisibility;

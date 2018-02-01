@@ -51,7 +51,7 @@ router.get(['/readme'], function(req, res, next){
 
 
 router.get(['/about', '/info'], (req, res, next) => {
-	res.json({message: 'Beautyland API, author: Roy Lu(royvbtw) 2017 -2018. #1401T0310'});
+	res.json({message: 'Beautyland API, author: Roy Lu(royvbtw) 2017 -2018. #0202T0429'});
 });
 
 
@@ -65,7 +65,7 @@ router.get(['/', '/latest/:page?'], async function(req, res, next){
       return res.json({message: 'There is no any result.'});
     }
 	}catch(ex){
-    log.error({page: req.params.page, ex: ex.stack}, 'Error in routers.get>latest');
+    log.error({page: req.params.page, ex: ex.stack}, 'Error in routers.get>/latest');
     return res.sendStatus(500);
   }
 });
@@ -118,9 +118,9 @@ router.get('/samples', async (req, res, next) => {
 
 
 /**
- * Get the post data for the given post id.
+ * A request to GET the post data for the given post id.
  */
-router.get('/post/:postId', service.getPostHandler);
+router.get('/posts/:postId', service.getPostHandler);
 
 
 /**
@@ -128,7 +128,14 @@ router.get('/post/:postId', service.getPostHandler);
  */
 router.put('/post/:postId', service.updatePostHandler);
 
-router.delete('/post/:postId', service.deletePostHandler);
+/**
+ * A request to DELETE the post for the given post id
+ */
+router.delete('/posts/:postId', service.deletePostHandler);
+
+router.put('/posts/:postId/visibility', service.enablePostVisibility);
+
+router.delete('/posts/:postId/visibility', service.disablePostVisibility);
 
 
 /**
@@ -144,7 +151,9 @@ router.post('/build', async (req, res, next) => {
       return res.sendStatus(400);
     }
   }catch(ex){
-    log.error({pageIndex: parseInt(req.body.pageIndex, 10), ex: ex.stack}, 'Error in routers.post>/build');
+    log.error({
+      pageIndex: parseInt(req.body.pageIndex, 10), ex: ex.stack
+    }, 'Error in routers.post>/build');
     return res.sendStatus(500);
   }
 });
