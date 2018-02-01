@@ -96,7 +96,7 @@ describe('Test for index.js', () => {
       });
     });
 
-    test('should return 404 if the post does exist', (done) => {
+    test('should return 404 if the post does not exist', (done) => {
       request.get('http://localhost:3004/posts/test.id.ghost').end((error, res) => {
         expect(res.status).toBe(404);
         done();

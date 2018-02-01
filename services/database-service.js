@@ -41,6 +41,7 @@ class DatabaseService{
   async connect(){
     if(!this.conn){
       try{
+        log.info(`DB.connect() started. url=${this.dburl}`);
         this.conn = await MongoClient.connect(this.dburl, connectionOptions);
         if(config.env === 'production'){
           this.postsCollection = this.conn.collection('posts');

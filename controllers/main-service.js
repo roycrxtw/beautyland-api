@@ -141,7 +141,7 @@ async function getTrendsPage({range = 1, page = 1} = {}){
 	try{
 		const timeOffset = new Date().setDate(new Date().getDate() - range);
 		const posts = await dbService.readPosts({
-			query: {createdAt: { $gte: new Date(timeOffset) }},
+			query: {visibility: true, createdAt: { $gte: new Date(timeOffset) }},
 			order: {viewCount: -1},
 			size: PAGE_SIZE,
 			skip: PAGE_SIZE * (page - 1)
