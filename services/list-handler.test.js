@@ -50,7 +50,7 @@ describe('Test for list-handler', () => {
     });
   });
   
-  describe('handler.generatePost()', () => {
+  describe('handler.generatePost(): Create a post from post summary', () => {
     test('should return null if summary is invalid', async () => {
       expect.assertions(1);
       let summary = '';
@@ -74,6 +74,7 @@ describe('Test for list-handler', () => {
       expect(post.title).toBe('[正妹] 新垣結衣');
       expect(post.images.length).toBe(10);
       expect(post.viewCount).toBe(0);
+      expect(post.visibility).toBe(true);
     });
   });
 
