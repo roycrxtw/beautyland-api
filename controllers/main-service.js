@@ -2,7 +2,7 @@
 /**
  * Project Beautyland
  * Main service
- * @author Roy Lu(royvbtw)
+ * @author Roy Lu(royxnatw)
  * Sep 2017 -
  */
 

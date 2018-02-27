@@ -2,7 +2,7 @@
 /**
  * Project Beautyland API
  * This is a html parser specially designed for the ptt contents.
- * @author Roy Lu(royvbtw)
+ * @author Roy Lu(royxnatw)
  * Sep 2017 -
  */
 

@@ -2,7 +2,7 @@
 /**
  * Beautyland project
  * Routers
- * @author Roy Lu(royvbtw)
+ * @author Roy Lu(royxnatw)
  */
 
 var express = require('express');
@@ -51,7 +51,7 @@ router.get(['/readme'], function(req, res, next){
 
 
 router.get(['/about', '/info'], (req, res, next) => {
-	res.json({message: 'Beautyland API, author: Roy Lu(royvbtw) 2017 -2018. #0202T0429'});
+	res.json({message: 'Beautyland API, author: Roy Lu(royxnatw) 2017 -2018. #0227T2003'});
 });
 
 

@@ -1,7 +1,7 @@
 
 /**
  * Project Beautyland API
- * @author Roy Lu(royvbtw)
+ * @author Roy Lu(royxnatw)
  */
 
 const express = require('express');

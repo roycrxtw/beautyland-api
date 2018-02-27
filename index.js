@@ -2,7 +2,7 @@
 /**
  * Project Beautyland API
  * Entry point
- * @author Roy Lu(royvbtw)
+ * @author Roy Lu(royxnatw)
  */
 
 const server = require('./server');

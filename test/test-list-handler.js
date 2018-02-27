@@ -2,7 +2,7 @@
 /**
  * Project Beautyland API
  * Test for list-handler.js
- * @author Roy Lu(royvbtw) Sep 2017
+ * @author Roy Lu(royxnatw) Sep 2017
  */
 
 /* eslint no-unused-expressions: "off" */
@@ -19,7 +19,7 @@ const testUrls = [
 	{url: 'http://i.imgur.com/13wpSFj.jpg', result: '13wpSFj'},
 	{url: 'http://imgur.com/a/Qai8x', result: false},
 	{url: 'http://imgur.com/gallery/VCDXO', result: false},
-	{url: 'https://royvbtw.uk/cats.jpg', result: false}
+	{url: 'https://royxnatw.uk/cats.jpg', result: false}
 ];
 
 describe('Test for list-handler', function(){	

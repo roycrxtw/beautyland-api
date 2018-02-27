@@ -1,20 +1,21 @@
 # Beatuyland API
 
-This is the data service of Beautyland Project. This api provides the post data fetched from [PTT Beauty](https://www.ptt.cc/bbs/Beauty) board.
+This is the data service of Beautyland Project. This API provides the post data fetched from [PTT Beauty](https://www.ptt.cc/bbs/Beauty) board.
 
 ## Usage
+
 You can simply send a GET request to API root path to fetch the latest posts of PTT Beauty board. The post data will be formatted in JSON.
 ```
-https://beautyland-api.royvbtw.uk/
+https://beautyland-api.royxnatw.uk/
 ```
 Or you can get the most popular posts in a week by send this get request:
 ```
-https://beautyland-api.royvbtw.uk/trends
+https://beautyland-api.royxnatw.uk/trends
 ```
 
 You can also use /samples end point for a random post results:
 ```
-https://beautyland-api.royvbtw.uk/samples
+https://beautyland-api.royxnatw.uk/samples
 ```
 
 ### Get the post
@@ -22,10 +23,11 @@ https://beautyland-api.royvbtw.uk/samples
 You can fetch a single post data with this end point:
 
 ```
-https://beautyland-api.royvbtw.uk/posts/[the-post-id]
+https://beautyland-api.royxnatw.uk/posts/[the-post-id]
 ```
 
 ## The data format
+
 The returned data will be formatted in JSON.
 ```
 {

@@ -9,7 +9,7 @@
     "test": "npm run lint && jest --colors --watchAll",
     "testonly": "jest --colors --watchAll"
   },
-  "author": "Roy Lu (royvbtw)",
+  "author": "Roy Lu(royxnatw)",
   "license": "MIT",
   "dependencies": {
     "body-parser": "^1.18.2",
@@ -39,6 +39,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/royvbtw/beautyland-api.git"
+    "url": "https://github.com/royxnatw/beautyland-api.git"
   }
 }

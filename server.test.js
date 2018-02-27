@@ -2,7 +2,7 @@
 /**
  * Project Beautyland API
  * Test for list-handler.js
- * @author Roy Lu(royvbtw) Jan 2018
+ * @author Roy Lu(royxnatw) Jan 2018
  */
 
 const request = require('superagent');

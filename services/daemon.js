@@ -1,7 +1,7 @@
 
 /**
  * Project Beautyland
- * @author Roy Lu(royvbtw)
+ * @author Roy Lu(royxnatw)
  * daemon service: This daemon service is responsible for fetch data from PTT Beauty board.
  */
 
