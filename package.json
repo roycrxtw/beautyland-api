@@ -19,7 +19,7 @@
     "express": "^4.16.4",
     "jest": "^22.4.4",
     "lodash": "^4.17.11",
-    "mongodb": "^2.2.31",
+    "mongodb": "^2.2.36",
     "request": "^2.88.0",
     "request-image-size": "^2.1.0"
   },
