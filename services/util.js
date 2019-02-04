@@ -2,54 +2,48 @@
 /**
  * Project Beautyland API
  * @author Roy Lu
- * Sep, 2017
+ * Since Sep 2017
  */
 
-var cheerio = require('cheerio');
-var request = require('request');
-var requestImageSize = require('request-image-size');
+const cheerio = require('cheerio');
+const request = require('request');
+const requestImageSize = require('request-image-size');
 
-var log = require('bunyan').createLogger({
-  name: 'util',
-  streams: [
-    {level: 'error', path: 'log/error.log'}
-  ]
-});
+const log = require('services/log-service').init('list-handler');
 
 module.exports.fetchHtml = fetchHtml;
-module.exports.htmlToText = htmlToText;
 module.exports.getImageSize = getImageSize;
-
+module.exports.htmlToText = htmlToText;
 
 /**
  * Get target html content for the given url
  * @param {string} url The target url which will be processed.
  * @return {Promise} Resolve if status code is 200 and the length of html content > 0.
  */
-function fetchHtml(url){
+function fetchHtml(url) {
   return new Promise( (resolve, reject) => {
-    if(!url){
+    if (!url) {
       return reject({ error: 'Error: The url is invalid.' });
     }
 
-		request(url, function(err, response, body){
-			if(err){
+		request(url, function(err, response, body) {
+			if (err) {
 				return reject({error: err, url: url});
 			}
 			const statusCode = response.statusCode;
-			if(response && statusCode === 200 && body.length > 0){
+			if (response && statusCode === 200 && body.length > 0) {
 				return resolve({statusCode: statusCode, body: body});
-			}else if(response && statusCode === 200 && body.length === 0){
+			} else if (response && statusCode === 200 && body.length === 0) {
 				return reject({
-					message: 'Content length is 0 after fetchHteml(). Please check.', 
-					statusCode: statusCode,
-					url: url
+					message: 'Content length is 0 after fetchHtml(). Please check.', 
+					statusCode,
+					url,
 				});
-			}else{
+			} else {
 				return reject({
 					message: 'Wrong status code', 
-					statusCode: statusCode,
-					url: url
+					statusCode,
+					url,
 				});
 			}
 		});
@@ -60,8 +54,8 @@ function fetchHtml(url){
  * A utility which is used to parse html content to plain text.
  * @param {string} html Plain text of html content.
  */
-function htmlToText(html){
-	if(!html){
+function htmlToText(html) {
+	if(!html) {
 		return false;
 	}
 	let $ = cheerio.load(html);
@@ -74,10 +68,10 @@ function htmlToText(html){
  * It uses request-image-size module.
  * @param {string} url 
  */
-async function getImageSize(url){
+async function getImageSize(url) {
 	try{
 		return await requestImageSize(url);
-	}catch(ex){
+	}catch(ex) {
 		log.error({url: url, ex: ex.stack}, 'Error in util.getImageSize()');
 	}
 }

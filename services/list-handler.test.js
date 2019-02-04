@@ -96,8 +96,8 @@ describe('Test for list-handler', () => {
     });
   });
 
-  describe('list-hanlder.getImgurUrls()', function(){
-    test('should return expected amount of imgur urls', function(){
+  describe('list-hanlder.getImgurUrls()', function() {
+    test('should return expected amount of imgur urls', function() {
       const plainText = fs.readFileSync('./test/example-plainText.txt', 'utf8');
       const urls = handler.getImgurUrlsFromText(plainText);
       expect(urls.length).toBe(8);
@@ -106,8 +106,8 @@ describe('Test for list-handler', () => {
   });
 
 
-  describe('list-handler.getPostId(): Get postId from a ptt url', function(){
-    test('should return an expected post id.', function(){
+  describe('list-handler.getPostId(): Get postId from a ptt url', function() {
+    test('should return an expected post id.', function() {
       const url = 'https://www.ptt.cc/bbs/StupidClown/M.1501823338.A.A21.html';
       const expectedPostId = 'M.1501823338.A.A21';
       const postId = handler.getPostId(url);
@@ -121,18 +121,18 @@ describe('Test for list-handler', () => {
   });
 
 
-  describe('list-handler.getList(): Get list from html', function(){
+  describe('list-handler.getList(): Get list from html', function() {
     let sample = null;
-    beforeAll(function(){
+    beforeAll(function() {
       sample = fs.readFileSync('./test/sample-list.html', 'utf8');
     });
 
-    test('should return expected list length', function(){
+    test('should return expected list length', function() {
       const list = handler.getList(sample);
       expect(list.length).toBe(9);
     }); 
 
-    test('should have expected result loaded from sample-list.html', async function(){
+    test('should have expected result loaded from sample-list.html', async function() {
       const list = handler.getList(sample);
       expect(list[3].author).toBe('bbac99119');
       expect(list[3].title).toBe('[神人] 光陽showgirl');

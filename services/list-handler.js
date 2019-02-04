@@ -3,28 +3,13 @@
  * Project Beautyland API
  * This is a html parser specially designed for the ptt contents.
  * @author Roy Lu(royxnatw)
- * Sep 2017 -
+ * Since Sep 2017
  */
 
 const cheerio = require('cheerio');
 
-const config = require('../config/main.config');
 const util = require('./util');
-
-let logSettings = {};
-if(config.env === 'production'){
-  logSettings = [
-    {level: config.LOG_LEVEL, path: 'log/list-handler.log'}, 
-    {level: 'error', path: 'log/error.log'}
-  ];
-}else{
-  logSettings = [{level: 'debug', stream: process.stdout}];
-}
-
-const log = require('bunyan').createLogger({
-  name: 'list-handler',
-  streams: logSettings
-});
+const log = require('services/log-service').init('list-handler');
 
 const BASE_URL = 'https://www.ptt.cc';
 const imgurIdPattern = /(?:http|https):\/\/.*?imgur\.com\/([^ .\n/]+)/;
@@ -37,21 +22,19 @@ module.exports.getList = getList;
 module.exports.getPostId = getPostId;
 module.exports.formatImgurUrl = formatImgurUrl;
 
-
 /**
  * Format imgur url to a https direct link.
  * @param {string} url An imgur url
  * @return {string|null} Formatted imgur URL, or returns null if it is invalid imgur url.
  */
-function formatImgurUrl(url){
+function formatImgurUrl(url) {
   const imgurId = getImgurId(url);
-  if(!imgurId){
+  if(!imgurId) {
     return null;
-  }else{
+  } else {
     return 'https://i.imgur.com/' + imgurId + '.jpg';
   }
 }
-
 
 /**
  * Get imgur image ID
@@ -59,29 +42,27 @@ function formatImgurUrl(url){
  * @return {string|false} The matched imgur id, or **false** if the url is imgur 
  * album, imgur gallery or any other invalid url.
  */
-function getImgurId(imgurURL){
+function getImgurId(imgurURL) {
   const match = imgurURL.match(imgurIdPattern);
-  if(!match || match[1] === 'a' || match[1] === 'gallery'){
+  if(!match || match[1] === 'a' || match[1] === 'gallery') {
     return false;
-  }else{
+  } else {
     return match[1];
   }
 }
-
 
 /**
  * Get all imgur urls from the given plain text content.
  * @param {string} text plain text
  * @return {string[]} A url array parsed from the given plain text
  */
-function getImgurUrlsFromText(text){
+function getImgurUrlsFromText(text) {
   let urls = text.match(imgurUrlPattern);
-  if(!urls){
+  if(!urls) {
     urls = [];
   }
   return urls;
 }
-
 
 /**
  * @typedef {object} PreparedPost
@@ -96,23 +77,23 @@ function getImgurUrlsFromText(text){
 
 /**
  * 
- * @param {string} postId 
+ * @param {Object} postSummary
  * @return {PreparedPost|null} Return null if there is no any image in the post.
  */
-async function generatePost(postSummary){
+async function generatePost(postSummary) {
   try{
     const html = (await util.fetchHtml(postSummary.link)).body;
     
     const plainText = util.htmlToText(html);
     const imgurUrls = getImgurUrlsFromText(plainText);
-    if(imgurUrls.length === 0){
+    if (imgurUrls.length === 0) {
       return null;  //No any image exists. Return null.
     }
     
     let imageList = [];
-    for(let i = 0; i < imgurUrls.length; i++){
+    for(let i = 0; i < imgurUrls.length; i++) {
       const formattedUrl = formatImgurUrl(imgurUrls[i]);
-      if(!formattedUrl){
+      if(!formattedUrl) {
         continue;
       }
 
@@ -124,7 +105,7 @@ async function generatePost(postSummary){
       imageList.push(image);
     }
     
-    if(imageList.length === 0){
+    if(imageList.length === 0) {
       return null;
     }
 
@@ -134,31 +115,29 @@ async function generatePost(postSummary){
     preparedPost.createdAt = new Date();
     preparedPost.visibility = true;
     return preparedPost;
-  }catch(ex){
+  } catch(ex) {
     log.error({args: arguments, ex: ex.stack}, 'Error in list-handler.generatePost()');
     return null;
   }
 }
 
-
 /**
  * Get post id from the given PTT url
  * @param {string} url a PTT url
  */
-function getPostId(url){
+function getPostId(url) {
   const pattern = /^.*\/(.*)\.html$/;
   const postId = url.match(pattern)[1];
   return postId;
 }
 
-
 /**
  * Build a list of post summary(post author, post id, link and title) 
  * from a PTT html content.
  * @param {string} htmlContent PTT html content
- * @return {array} A list of post summary
+ * @return {Object[]} A list of post summary
  */
-function getList(htmlContent){
+function getList(htmlContent) {
   let $ = cheerio.load(htmlContent);
   let list = [];
 
@@ -166,9 +145,9 @@ function getList(htmlContent){
     let postSummary = {};
 
     let path = $(this).find('a').attr('href');
-    if(path){
+    if (path) {
       postSummary.link = BASE_URL + path;
-    }else{
+    } else {
       return;
     }
 
@@ -176,7 +155,7 @@ function getList(htmlContent){
     
     let temp = $(this).find('.title').text();
     postSummary.title = temp.trim().replace(/[\t\n\r]/g, '');
-    if(postSummary.title.match(/^\[(公告|帥哥)\].*$/)){  // exclude '公告' and'帥哥'
+    if(postSummary.title.match(/^\[(公告|帥哥)\].*$/)) {  // exclude '公告' and '帥哥'
       return;
     }
     
