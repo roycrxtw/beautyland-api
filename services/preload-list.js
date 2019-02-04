@@ -6,32 +6,32 @@
  * Sep, 2017
  */
 
-const config = require('../config/main.config');
+const config = require('../config/main-config');
 const PAGE_SIZE = config.defaultPageSize;
 
 class PreloadList{
-  constructor(){
+  constructor() {
     this.posts = [];
     this.max = config.preloadSize;
     this.updatedAt = undefined;
   }
 
-  update(list){
+  update(list) {
     this.posts = list;
     this.updatedAt = new Date();
   }
 
-  getList(page){
+  getList(page) {
     let slicedPosts = [];
-    if(page === 1){
+    if(page === 1) {
         slicedPosts = this.posts.slice(0, PAGE_SIZE);
-    }else{
+    } else {
         slicedPosts = this.posts.slice(PAGE_SIZE, this.max);
     }
     return {posts: slicedPosts, updatedAt: this.updatedAt};
   }
 
-  getListSize(){
+  getListSize() {
     return this.posts.length;
   }
 }

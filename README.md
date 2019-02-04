@@ -60,7 +60,7 @@ npm run testonly
 The test db url setting is:
 
 ```
-// beautyland-api/config/main.config
+// beautyland-api/config/main-config.js
 testDbUrl: 'mongodb://localhost:27017/beautyland-testingdb'
 ```
 

@@ -7,41 +7,24 @@
 
 const server = require('./server');
 
-const config = require('./config/main.config');
-const PORT = config.port;
+const { PORT } = require('./config/main-config');
+const mainService = require('services/main-service');
+
+const log = require('services/log-service').init('index');
 
 let daemonService = null;
 
-let logSettings = (config.env === 'production')? [
-  {level: config.LOG_LEVEL, path: 'log/db.log'}, 
-  {level: 'error', path: 'log/error.log'}
-]: [
-  {level: 'debug', stream: process.stdout},
-  {level: 'debug', path: 'log/dev-debug.log'},
-  {level: 'error', path: 'log/dev-error.log'},
-];
-const log = require('bunyan').createLogger({
-  name: 'index',
-  streams: logSettings
-});
-
-
-(async function callDaemon(){
-  try{
+(async function callDaemon() {
+  try {
     log.info('index.callDaemon() started.');
-    if(!daemonService){
-      log.info('index.callDaemon(): fork a daemon process.');
+    if (!daemonService) {
+      log.info('index.callDaemon(): forking a daemon process.');
       daemonService = require('child_process').fork(__dirname + '/services/daemon.js');
-      // daemonService.on('message', async function(m){
-      //   if(m.cmd === 'update-preloadList'){
-      //     updatePreloadList();
-      //   }
-      // });
+      await mainService.init({daemon: daemonService});
     }
-  }catch(ex){
+  } catch(ex) {
     log.error({ex: ex.stack}, 'Error in index.callDaemon()');
   }
 })();
-
 
 server(PORT);

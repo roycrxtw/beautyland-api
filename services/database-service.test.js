@@ -8,9 +8,9 @@ const connectionOptions = {
 }; 
 
 // Use a local mongodb to test the database-service.js
-const TEST_DB_URL = require('../config/main.config').testDbUrl;
-var db = null;
-var testCollection = null;
+const TEST_DB_URL = require('../config/main-config').testDbUrl;
+let db = null;
+let testCollection = null;
 let dbService = null;
 
 const preparedPosts = require('../test/sample-posts');
@@ -20,7 +20,7 @@ describe('Testing for database-service', () => {
   //this.timeout(15000);
   jest.setTimeout(15000);
 
-  beforeAll(async function(){
+  beforeAll(async function() {
     dbService = DatabaseService.init(TEST_DB_URL);	// init for DatabaseService
     await dbService.connect();
     
@@ -30,24 +30,24 @@ describe('Testing for database-service', () => {
     testCollection.remove({});
   });
 
-  beforeEach(function(done){
+  beforeEach(function(done) {
     // Insert test documents into database
-    testCollection.insertMany(preparedPosts, function(err, result){
+    testCollection.insertMany(preparedPosts, function(err, result) {
       expect(err).toBeNull();
       expect(result.result.n).toBe(sampleCount);
       done();
     });
   });
 
-  afterEach(function(done){
+  afterEach(function(done) {
     // Clear up test documents.
-    testCollection.remove({}, function(err, result){
+    testCollection.remove({}, function(err, result) {
       expect(err).toBeNull();
       done();
     });
   });
 
-  afterAll(function(done){
+  afterAll(function(done) {
     db.close(true);
     dbService.close();
     done();
@@ -64,7 +64,7 @@ describe('Testing for database-service', () => {
   });
 
 
-  describe('Check the test collection status', function(){
+  describe('Check the test collection status', function() {
     test(`should contain ${sampleCount} testing documents`, async() => {
       //expect.assertions(1);
       const count = await testCollection.count();
@@ -73,16 +73,16 @@ describe('Testing for database-service', () => {
   });
 
 
-  describe('database-service.isConnected()', function(){
-    test('should return true', async function(){
+  describe('database-service.isConnected()', function() {
+    test('should return true', async function() {
       let flag = await dbService.isConnected();
       expect(flag).toBe(true);
     });
   });
 
 
-  describe('database-service.checkPostExists()', function(){
-    test('should return true/false if the post does/does\'t exist.', async function(){
+  describe('database-service.checkPostExists()', function() {
+    test('should return true/false if the post does/does\'t exist.', async function() {
       let flag = await dbService.checkPostExists('test.id.thrall');
       expect(flag).toBe(true);
 
@@ -127,7 +127,7 @@ describe('Testing for database-service', () => {
   });
 
 
-  describe('database-service.readPost(postId): Read post from database', function(){
+  describe('database-service.readPost(postId): Read post from database', function() {
     test('should return expected post document.', async () => {
       const post = await dbService.readPost('test.id.teemo');
       expect(post.author).toBe(preparedPosts[1].author);
@@ -161,7 +161,7 @@ describe('Testing for database-service', () => {
   });
 
 
-  describe('db-service.readPosts(query, opts): Read posts from database', function(){
+  describe('db-service.readPosts(query, opts): Read posts from database', function() {
     test('should return null if there is no any result.', async () => {
       const posts = await dbService.readPosts({
         query: {author: 'nobody'}
@@ -187,7 +187,7 @@ describe('Testing for database-service', () => {
     // });
   });
 
-  describe('database-service.readRandomPosts(): Read random posts from database', function(){
+  describe('database-service.readRandomPosts(): Read random posts from database', function() {
     test('should return a random result', async () => {
       const posts = await dbService.readRandomPosts({size: 2, collectionName: 'test'});
       expect(posts.length).toBe(2);
@@ -239,7 +239,7 @@ describe('Testing for database-service', () => {
     });
   });
 
-  describe('db-service.updatePostViewCount(postId): Update post click count by 1', function(){
+  describe('db-service.updatePostViewCount(postId): Update post click count by 1', function() {
     test('should return true if postId exists', async () => {
       const result = await dbService.updatePostViewCount('test.id.teemo');
       expect(result).toBe(true);
@@ -250,7 +250,7 @@ describe('Testing for database-service', () => {
       expect(result).toBe(false);
     });
 
-    test('should have an expected view count if process finished', async function(){
+    test('should have an expected view count if process finished', async function() {
       await dbService.updatePostViewCount('test.id.teemo');
 
       const result = await testCollection.findOne({postId: 'test.id.teemo'});

@@ -15,7 +15,7 @@ const connectionOptions = {
 const server = require('./server.js');
 const preparedPosts = require('./test/sample-posts');
 const sampleCount = preparedPosts.length;
-const config = require('./config/main.config');
+const config = require('./config/main-config');
 const TEST_DB_URL = config.testDbUrl;
 const SECRET_KEY = config.secretKey;
 
@@ -50,7 +50,7 @@ describe('Test for index.js', () => {
   });
 
   afterEach((done) => {   // Clear up test documents.
-    testCollection.remove({}, function(err, result){
+    testCollection.remove({}, function(err, result) {
       done();
     });
   });
